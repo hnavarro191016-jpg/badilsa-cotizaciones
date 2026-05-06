@@ -422,11 +422,11 @@ export default function CotizacionPage() {
             <div className="text-sm" style={{ color: '#333' }}>
               <strong>BAAR361013-TU3</strong><br />
               Carretera AguaFria Km 1.5 Apodaca,NL.<br />
-              CP 66620
-            </div>
-            <div className="text-sm" style={{ color: '#2563eb', textAlign: 'right' }}>
-              ventas@mymdelnorte.com<br />
-              ventas@badilsa.com
+              CP 66620<br />
+              <span style={{ color: '#2563eb' }}>
+                ventas@mymdelnorte.com<br />
+                ventas@badilsa.com
+              </span>
             </div>
           </div>
 
