@@ -42,8 +42,8 @@ export default function LoginPage() {
       <div style={{ background: 'white', padding: '2.5rem', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '200px', height: 'auto', margin: '0 auto' }} />
-          <p style={{ marginTop: '1rem', color: '#475569', fontSize: '0.9rem' }}>Sistema de Cotizaciones en Línea</p>
+          <img src="/logo.png" alt="Badilsa Logo" style={{ width: '100%', maxWidth: '320px', height: 'auto', margin: '0 auto' }} />
+          <p style={{ marginTop: '0', color: '#475569', fontSize: '0.9rem' }}>Sistema de Cotizaciones en Línea</p>
         </div>
 
         {error && (
