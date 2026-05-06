@@ -1,0 +1,557 @@
+"use client";
+
+import React, { useEffect, useMemo, useState } from 'react';
+import { Check, Edit, History, LogOut, Plus, Printer, Save, Trash2, UserPlus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+type ActiveTab = 'historial' | 'cotizacion' | 'usuarios';
+type Mode = 'new' | 'edit';
+
+interface Item {
+  id: string;
+  cantidad: number;
+  unidad: string;
+  descripcion: string;
+  precioUnitario: number;
+  valorDolar: number;
+}
+
+interface CotizacionData {
+  id?: string;
+  folio: string;
+  fecha: string;
+  atencion: string;
+  empresa: string;
+  moneda: 'DOLARES' | 'PESOS';
+  observaciones: string;
+  tiempoEntrega: string;
+  subTotal?: number;
+  iva?: number;
+  total?: number;
+  items: Item[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface UserData {
+  id: string;
+  username: string;
+  role: 'ADMIN' | 'USER';
+  createdAt?: string;
+}
+
+const todayInputValue = () => new Date().toISOString().slice(0, 10);
+
+const emptyItem = (): Item => ({
+  id: Date.now().toString(),
+  cantidad: 1,
+  unidad: 'pzas',
+  descripcion: '',
+  precioUnitario: 0,
+  valorDolar: 1,
+});
+
+export default function CotizacionPage() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<ActiveTab>('historial');
+  const [mode, setMode] = useState<Mode>('new');
+  const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+
+  const [folio, setFolio] = useState('');
+  const [fecha, setFecha] = useState(todayInputValue());
+  const [atencion, setAtencion] = useState('');
+  const [empresa, setEmpresa] = useState('');
+  const [moneda, setMoneda] = useState<'DOLARES' | 'PESOS'>('DOLARES');
+  const [observaciones, setObservaciones] = useState('');
+  const [tiempoEntrega, setTiempoEntrega] = useState('30 dias');
+  const [items, setItems] = useState<Item[]>([emptyItem()]);
+
+  const [historial, setHistorial] = useState<CotizacionData[]>([]);
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newRole, setNewRole] = useState<'ADMIN' | 'USER'>('USER');
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  const subTotal = useMemo(
+    () => items.reduce((acc, item) => acc + item.cantidad * item.precioUnitario * (item.valorDolar || 1), 0),
+    [items]
+  );
+  const iva = subTotal * 0.16;
+  const total = subTotal + iva;
+
+  useEffect(() => {
+    fetchCurrentUser();
+    fetchHistorial();
+  }, []);
+
+  useEffect(() => {
+    if (currentUser?.role === 'ADMIN') fetchUsers();
+  }, [currentUser]);
+
+  const showMessage = (text: string) => {
+    setError('');
+    setMessage(text);
+    window.setTimeout(() => setMessage(''), 3000);
+  };
+
+  const showError = (text: string) => {
+    setMessage('');
+    setError(text);
+  };
+
+  const fetchCurrentUser = async () => {
+    const res = await fetch('/api/auth/me');
+    if (res.ok) setCurrentUser(await res.json());
+  };
+
+  const fetchHistorial = async () => {
+    const res = await fetch('/api/cotizaciones');
+    if (res.ok) setHistorial(await res.json());
+  };
+
+  const fetchUsers = async () => {
+    const res = await fetch('/api/users');
+    if (res.ok) setUsers(await res.json());
+  };
+
+  const fetchNextFolio = async () => {
+    const res = await fetch('/api/cotizaciones/next-folio');
+    if (!res.ok) {
+      showError('No se pudo generar el folio.');
+      return '';
+    }
+
+    const data = await res.json();
+    return data.folio || '';
+  };
+
+  const startNewCotizacion = async () => {
+    const nextFolio = await fetchNextFolio();
+    setMode('new');
+    setFolio(nextFolio);
+    setFecha(todayInputValue());
+    setAtencion('');
+    setEmpresa('');
+    setMoneda('DOLARES');
+    setObservaciones('');
+    setTiempoEntrega('30 dias');
+    setItems([emptyItem()]);
+    setActiveTab('cotizacion');
+  };
+
+  const loadCotizacion = (cotizacion: CotizacionData) => {
+    setMode('edit');
+    setFolio(cotizacion.folio);
+    setFecha(cotizacion.fecha);
+    setAtencion(cotizacion.atencion);
+    setEmpresa(cotizacion.empresa);
+    setMoneda(cotizacion.moneda);
+    setObservaciones(cotizacion.observaciones);
+    setTiempoEntrega(cotizacion.tiempoEntrega);
+    setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar || 1 })));
+    setActiveTab('cotizacion');
+  };
+
+  const saveCotizacion = async () => {
+    setIsSaving(true);
+    setError('');
+
+    const payload: CotizacionData = {
+      folio,
+      fecha,
+      atencion,
+      empresa,
+      moneda,
+      observaciones,
+      tiempoEntrega,
+      items,
+    };
+
+    try {
+      const res = await fetch('/api/cotizaciones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || 'No se pudo guardar la cotizacion.');
+        return;
+      }
+
+      await fetchHistorial();
+      showMessage(mode === 'new' ? 'Cotizacion guardada.' : 'Cotizacion actualizada.');
+      setMode('edit');
+    } catch {
+      showError('Error de conexion al guardar.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const deleteCotizacion = async (cotizacion: CotizacionData) => {
+    if (!window.confirm(`Eliminar la cotizacion ${cotizacion.folio}?`)) return;
+
+    const res = await fetch(`/api/cotizaciones?folio=${encodeURIComponent(cotizacion.folio)}`, {
+      method: 'DELETE',
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      showError(data.error || 'No se pudo eliminar la cotizacion.');
+      return;
+    }
+
+    await fetchHistorial();
+    showMessage('Cotizacion eliminada.');
+    if (folio === cotizacion.folio) startNewCotizacion();
+  };
+
+  const addItem = () => setItems((current) => [...current, emptyItem()]);
+  const removeItem = (id: string) => setItems((current) => current.filter((item) => item.id !== id));
+
+  const updateItem = (id: string, field: keyof Item, value: string | number) => {
+    setItems((current) => current.map((item) => (
+      item.id === id ? { ...item, [field]: value } : item
+    )));
+  };
+
+  const createUser = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.error || 'No se pudo crear el usuario.');
+      return;
+    }
+
+    setNewUsername('');
+    setNewPassword('');
+    setNewRole('USER');
+    await fetchUsers();
+    showMessage('Usuario creado.');
+  };
+
+  const deleteUser = async (user: UserData) => {
+    if (!window.confirm(`Eliminar el usuario ${user.username}?`)) return;
+
+    const res = await fetch(`/api/users?id=${encodeURIComponent(user.id)}`, { method: 'DELETE' });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.error || 'No se pudo eliminar el usuario.');
+      return;
+    }
+
+    await fetchUsers();
+    showMessage('Usuario eliminado.');
+  };
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/login', { method: 'DELETE' });
+    router.push('/login');
+    router.refresh();
+  };
+
+  const formatCurrency = (value: number) => new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: moneda === 'DOLARES' ? 'USD' : 'MXN',
+  }).format(value);
+
+  const formatDisplayDate = (dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T12:00:00');
+    if (isNaN(date.getTime())) return dateString;
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return `${date.getDate()}-${months[date.getMonth()]}-${date.getFullYear()}`;
+  };
+
+  return (
+    <div className="app-container">
+      <div className="toolbar no-print">
+        <div className="toolbar-content">
+          <h1 className="text-xl font-bold">Badilsa Cotizaciones</h1>
+          <div className="flex gap-2">
+            <button className="btn btn-outline" onClick={handleLogout} style={{ color: '#ef4444', borderColor: '#ef4444' }}>
+              <LogOut size={18} /> Salir
+            </button>
+            {activeTab === 'cotizacion' && (
+              <button className="btn btn-outline" onClick={() => window.print()}>
+                <Printer size={18} /> Imprimir PDF
+              </button>
+            )}
+            {activeTab === 'cotizacion' && (
+              <button className="btn btn-primary" onClick={saveCotizacion} disabled={isSaving}>
+                {message ? <Check size={18} /> : <Save size={18} />}
+                {isSaving ? 'Guardando...' : 'Guardar'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="main-shell no-print">
+        <div className="tabs">
+          <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+            <History size={18} /> Historial
+          </button>
+          <button className={`tab-button ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={startNewCotizacion}>
+            <Plus size={18} /> Generar Nueva Cotizacion
+          </button>
+          {currentUser?.role === 'ADMIN' && (
+            <button className={`tab-button ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
+              <UserPlus size={18} /> Usuarios
+            </button>
+          )}
+        </div>
+
+        {(message || error) && (
+          <div className={`status-message ${error ? 'error' : 'success'}`}>
+            {error || message}
+          </div>
+        )}
+      </div>
+
+      {activeTab === 'historial' && (
+        <section className="panel-page no-print">
+          <div className="panel-header">
+            <div>
+              <h2>Historial de Cotizaciones</h2>
+              <p>{historial.length} cotizaciones guardadas</p>
+            </div>
+            <button className="btn btn-primary" onClick={startNewCotizacion}>
+              <Plus size={18} /> Nueva Cotizacion
+            </button>
+          </div>
+
+          <div className="history-table">
+            {historial.length === 0 ? (
+              <div className="empty-state">No hay cotizaciones guardadas.</div>
+            ) : (
+              historial.map((cotizacion) => (
+                <div className="history-row" key={cotizacion.folio}>
+                  <div>
+                    <div className="font-bold">{cotizacion.folio}</div>
+                    <div className="text-sm text-gray">{cotizacion.empresa} - {formatDisplayDate(cotizacion.fecha)}</div>
+                  </div>
+                  <div className="history-total">{cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${Number(cotizacion.total || 0).toFixed(2)}</div>
+                  <div className="history-actions">
+                    <button className="btn btn-outline" onClick={() => loadCotizacion(cotizacion)}>
+                      <Edit size={16} /> Modificar
+                    </button>
+                    <button className="btn btn-outline danger-outline" onClick={() => deleteCotizacion(cotizacion)}>
+                      <Trash2 size={16} /> Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'usuarios' && currentUser?.role === 'ADMIN' && (
+        <section className="panel-page no-print">
+          <div className="panel-header">
+            <div>
+              <h2>Usuarios</h2>
+              <p>Solo administradores pueden crear o eliminar usuarios.</p>
+            </div>
+          </div>
+
+          <form className="user-form" onSubmit={createUser}>
+            <input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="Usuario" required />
+            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Contrasena" required />
+            <select value={newRole} onChange={(e) => setNewRole(e.target.value as 'ADMIN' | 'USER')}>
+              <option value="USER">Cotizador</option>
+              <option value="ADMIN">Administrador</option>
+            </select>
+            <button className="btn btn-primary" type="submit">
+              <UserPlus size={18} /> Crear Usuario
+            </button>
+          </form>
+
+          <div className="history-table">
+            {users.map((user) => (
+              <div className="history-row" key={user.id}>
+                <div>
+                  <div className="font-bold">{user.username}</div>
+                  <div className="text-sm text-gray">{user.role === 'ADMIN' ? 'Administrador' : 'Cotizador'}</div>
+                </div>
+                <div className="history-actions">
+                  <button className="btn btn-outline danger-outline" onClick={() => deleteUser(user)} disabled={user.id === currentUser.id}>
+                    <Trash2 size={16} /> Eliminar
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'cotizacion' && (
+        <div className="document-page">
+          <div className="doc-header">
+            <div className="doc-folio-box">
+              Cotizacion
+              <input
+                className="inline-input folio-input"
+                value={folio}
+                readOnly
+                style={{ width: '280px', marginLeft: '10px' }}
+              />
+              <span className="no-print mode-label">{mode === 'new' ? 'Nueva' : 'Editando'}</span>
+            </div>
+            <div className="doc-logo">
+              <div style={{ lineHeight: 1 }}>
+                <span style={{ fontSize: '2rem', fontWeight: 800, color: '#0ea5e9' }}>badilsa</span>
+                <br />
+                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#64748b', letterSpacing: '0.1em' }}>m a q u i n a d o s</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="doc-company-info">
+            <div className="text-sm" style={{ color: '#333' }}>
+              <strong>BAAR361013-TU3</strong><br />
+              Carretera AguaFria Km 1.5 Apodaca,NL.<br />
+              CP 66620
+            </div>
+            <div className="text-sm" style={{ color: '#2563eb', textAlign: 'right' }}>
+              ventas@mymdelnorte.com<br />
+              ventas@badilsa.com
+            </div>
+          </div>
+
+          <div className="doc-meta-blocks">
+            <div className="meta-block attention-block">
+              <div className="flex items-center gap-2">
+                <span style={{ width: '65px' }}>Atencion:</span>
+                <input className="inline-input" value={atencion} onChange={(e) => setAtencion(e.target.value)} />
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span style={{ width: '65px' }}>Empresa:</span>
+                <input className="inline-input" value={empresa} onChange={(e) => setEmpresa(e.target.value)} />
+              </div>
+            </div>
+            <div className="meta-block date-block">
+              <span>fecha</span>
+              <input
+                type="date"
+                className="inline-input no-print"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                style={{ marginLeft: '10px', width: '120px' }}
+              />
+              <span className="print-only" style={{ marginLeft: '10px' }}>{formatDisplayDate(fecha)}</span>
+            </div>
+          </div>
+
+          <p className="text-sm mb-4" style={{ marginTop: '1rem' }}>
+            Atencion a su solicitud, me permito enviarle la cotizacion correspondiente al servicio de su interes.
+          </p>
+
+          <div className="table-container">
+            <table className="doc-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '60px' }}>Cant.</th>
+                  <th style={{ width: '80px' }}>Unidad</th>
+                  <th>Descripcion</th>
+                  <th style={{ width: '100px', textAlign: 'right' }}>Precio Unit.</th>
+                  <th className="no-print" style={{ width: '95px', textAlign: 'right' }}>Valor Dolar</th>
+                  <th style={{ width: '100px', textAlign: 'right' }}>Total</th>
+                  <th className="no-print" style={{ width: '40px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={item.id} className={index % 2 === 0 ? 'row-even' : 'row-odd'}>
+                    <td className="text-center">
+                      <input type="number" className="inline-input text-center" value={item.cantidad} onChange={(e) => updateItem(item.id, 'cantidad', parseFloat(e.target.value) || 0)} />
+                    </td>
+                    <td className="text-center">
+                      <input className="inline-input text-center" value={item.unidad} onChange={(e) => updateItem(item.id, 'unidad', e.target.value)} />
+                    </td>
+                    <td>
+                      <input className="inline-input" value={item.descripcion} onChange={(e) => updateItem(item.id, 'descripcion', e.target.value)} placeholder="Escriba aqui..." />
+                    </td>
+                    <td className="text-right">
+                      <span className="currency-prefix">$</span>
+                      <input type="number" className="inline-input text-right" value={item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', parseFloat(e.target.value) || 0)} style={{ width: '70px' }} />
+                    </td>
+                    <td className="no-print text-right">
+                      <input type="number" className="inline-input text-right" value={item.valorDolar} onChange={(e) => updateItem(item.id, 'valorDolar', parseFloat(e.target.value) || 1)} style={{ width: '70px' }} />
+                    </td>
+                    <td className="text-right" style={{ paddingRight: '0.5rem' }}>
+                      $ {formatCurrency(item.cantidad * item.precioUnitario * (item.valorDolar || 1)).replace('$', '').replace('MXN', '').replace('USD', '').trim()}
+                    </td>
+                    <td className="no-print text-center">
+                      <button className="text-danger" onClick={() => removeItem(item.id)}><Trash2 size={16} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="no-print" style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '1px solid #cbd5e1' }}>
+              <button className="btn btn-outline text-sm" onClick={addItem}><Plus size={16} /> Agregar Concepto</button>
+            </div>
+          </div>
+
+          <div className="doc-footer">
+            <div className="obs-block">
+              <div className="text-sm font-bold mb-1">OBSERVACIONES :</div>
+              <textarea
+                className="inline-input"
+                value={observaciones}
+                onChange={(e) => setObservaciones(e.target.value)}
+                rows={3}
+                style={{ width: '100%', resize: 'none', background: 'transparent' }}
+              />
+            </div>
+            <div className="totals-block">
+              <div className="total-row">
+                <span className="total-label blue-bg">Sub-Total</span>
+                <span className="total-value">$ {formatCurrency(subTotal).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+              </div>
+              <div className="total-row">
+                <span className="total-label"></span>
+                <span className="total-value">$ {formatCurrency(iva).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+              </div>
+              <div className="total-row">
+                <span className="total-label blue-bg">Total</span>
+                <span className="total-value font-bold">$ {formatCurrency(total).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="doc-terms">
+            <p className="font-bold">Precios en <select className="inline-input font-bold no-print" value={moneda} onChange={(e) => setMoneda(e.target.value as 'DOLARES' | 'PESOS')} style={{ width: '100px' }}>
+              <option value="DOLARES">DOLARES</option>
+              <option value="PESOS">PESOS</option>
+            </select>
+              <span className="print-only">{moneda}</span>
+            </p>
+            <p>Esperamos su orden de compra para programacion de fabricacion acorde al tiempo de entrega</p>
+            <p>Dias de entrega<br />
+              <input className="inline-input font-medium no-print delivery-input" value={tiempoEntrega} onChange={(e) => setTiempoEntrega(e.target.value)} placeholder="Ej. 15 dias" />
+              <span className="print-only">{tiempoEntrega}</span>
+            </p>
+            <p className="text-center" style={{ color: '#2563eb', marginTop: '1.5rem', textDecoration: 'underline' }}>www.badilsa.com</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

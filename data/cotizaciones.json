@@ -1,0 +1,47 @@
+[
+  {
+    "folio": "BMA0560-24042026",
+    "fecha": "2026-04-24",
+    "atencion": "Ing Adrian Gomez",
+    "empresa": "Panasonic",
+    "moneda": "DOLARES",
+    "observaciones": "TEMPLATES REDBULL",
+    "tiempoEntrega": "30 dias",
+    "items": [
+      {
+        "id": "1",
+        "cantidad": 2,
+        "unidad": "pzas",
+        "descripcion": "TEMPLATE 09-01",
+        "precioUnitario": 250
+      }
+    ],
+    "updatedAt": "2026-04-29T22:06:21.532Z"
+  },
+  {
+    "folio": "BMA0561-24042026",
+    "fecha": "2026-04-24",
+    "atencion": "Ing Adrian Gomez",
+    "empresa": "Panasonic",
+    "moneda": "DOLARES",
+    "observaciones": "TEMPLATES REDBULL",
+    "tiempoEntrega": "30 dias",
+    "items": [
+      {
+        "id": "1",
+        "cantidad": 2,
+        "unidad": "pzas",
+        "descripcion": "TEMPLATE 09-01",
+        "precioUnitario": 250
+      },
+      {
+        "id": "1777500387961",
+        "cantidad": 1,
+        "unidad": "pzas",
+        "descripcion": "TEMPLATE 09-01",
+        "precioUnitario": 540
+      }
+    ],
+    "createdAt": "2026-04-29T22:06:55.122Z"
+  }
+]

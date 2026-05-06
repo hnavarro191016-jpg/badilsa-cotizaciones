@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  role      String   @default("USER") // ADMIN or USER
+  createdAt DateTime @default(now())
+}
+
+model Cotizacion {
+  id            String   @id @default(cuid())
+  folio         String   @unique
+  fecha         String
+  atencion      String
+  empresa       String
+  moneda        String
+  observaciones String
+  tiempoEntrega String
+  subTotal      Float
+  iva           Float
+  total         Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  items         ItemCotizacion[]
+}
+
+model ItemCotizacion {
+  id             String     @id @default(cuid())
+  cotizacionId   String
+  cantidad       Float
+  unidad         String
+  descripcion    String
+  precioUnitario Float
+  valorDolar     Float      @default(1)
+  cotizacion     Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+}
