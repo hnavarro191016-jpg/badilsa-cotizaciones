@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Edit, History, LogOut, Plus, Printer, Save, Trash2, UserPlus } from 'lucide-react';
