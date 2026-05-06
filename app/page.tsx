@@ -413,11 +413,7 @@ export default function CotizacionPage() {
               <span className="no-print mode-label">{mode === 'new' ? 'Nueva' : 'Editando'}</span>
             </div>
             <div className="doc-logo">
-              <div style={{ lineHeight: 1 }}>
-                <span style={{ fontSize: '2rem', fontWeight: 800, color: '#0ea5e9' }}>badilsa</span>
-                <br />
-                <span style={{ fontSize: '1rem', fontWeight: 600, color: '#64748b', letterSpacing: '0.1em' }}>m a q u i n a d o s</span>
-              </div>
+              <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '250px', height: 'auto' }} />
             </div>
           </div>
 

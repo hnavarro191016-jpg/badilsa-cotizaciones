@@ -41,8 +41,7 @@ export default function LoginPage() {
       <div style={{ background: 'white', padding: '2.5rem', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#0ea5e9', lineHeight: 1 }}>badilsa</h1>
-          <h2 style={{ fontSize: '1rem', fontWeight: 600, color: '#64748b', letterSpacing: '0.1em' }}>m a q u i n a d o s</h2>
+          <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '200px', height: 'auto', margin: '0 auto' }} />
           <p style={{ marginTop: '1rem', color: '#475569', fontSize: '0.9rem' }}>Sistema de Cotizaciones en Línea</p>
         </div>
 
