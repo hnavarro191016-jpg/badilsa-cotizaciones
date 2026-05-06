@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = path === '/login' || path.startsWith('/api/auth');
 
   // Paths to exclude entirely from middleware checks
-  if (path.startsWith('/_next') || path.includes('/favicon.ico')) {
+  if (path.startsWith('/_next') || path.includes('/favicon.ico') || path.endsWith('.png') || path.endsWith('.jpg')) {
     return NextResponse.next();
   }
 
