@@ -258,7 +258,13 @@ body {
   print-color-adjust: exact;
 }
 
-.doc-logo { text-align: right; }
+.doc-logo { 
+  position: absolute;
+  right: 50px;
+  top: 55px;
+  text-align: right;
+  z-index: 0;
+}
 .logo-placeholder { display: none; } /* Add real image if needed */
 
 .doc-company-info {
