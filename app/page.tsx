@@ -2,10 +2,10 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Edit, History, LogOut, Plus, Printer, Save, Trash2, UserPlus } from 'lucide-react';
+import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type ActiveTab = 'historial' | 'cotizacion' | 'usuarios';
+type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios';
 type Mode = 'new' | 'edit';
 
 interface Item {
@@ -54,7 +54,7 @@ const emptyItem = (): Item => ({
 
 export default function CotizacionPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('historial');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
   const [mode, setMode] = useState<Mode>('new');
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
@@ -303,6 +303,9 @@ export default function CotizacionPage() {
 
       <div className="main-shell no-print">
         <div className="tabs">
+          <button className={`tab-button ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => setActiveTab('inicio')}>
+            <Home size={18} /> Inicio
+          </button>
           <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
             <History size={18} /> Historial
           </button>
@@ -322,6 +325,24 @@ export default function CotizacionPage() {
           </div>
         )}
       </div>
+
+      {activeTab === 'inicio' && (
+        <section className="panel-page no-print" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
+          <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '350px', marginBottom: '2rem' }} />
+          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#1e293b' }}>Sistema de Cotizaciones Badilsa</h1>
+          <p style={{ fontSize: '1.1rem', color: '#475569', maxWidth: '800px', lineHeight: '1.6' }}>
+            Bienvenido a la plataforma integral de cotizaciones de Badilsa. Esta herramienta está diseñada para optimizar y agilizar el proceso de creación, gestión y seguimiento de propuestas comerciales. Podrá generar documentos profesionales, mantener un historial organizado de las ofertas enviadas a sus clientes y gestionar los accesos de manera segura.
+          </p>
+          <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+            <button className="btn btn-primary" onClick={startNewCotizacion}>
+              <Plus size={18} /> Generar Cotizacion
+            </button>
+            <button className="btn btn-outline" onClick={() => setActiveTab('historial')}>
+              <History size={18} /> Ver Historial
+            </button>
+          </div>
+        </section>
+      )}
 
       {activeTab === 'historial' && (
         <section className="panel-page no-print">
