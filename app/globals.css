@@ -429,7 +429,7 @@ body {
   textarea.inline-input { resize: none; overflow: hidden; }
 }
 
-@media (max-width: 760px) {
+@media screen and (max-width: 760px) {
   .toolbar-content,
   .panel-header,
   .history-actions {
