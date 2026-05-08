@@ -273,6 +273,13 @@ export default function CotizacionPage() {
     router.refresh();
   };
 
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    document.title = folio || 'Cotizacion';
+    window.print();
+    setTimeout(() => { document.title = originalTitle; }, 100);
+  };
+
   const formatCurrency = (value: number) => new Intl.NumberFormat('es-MX', {
     style: 'currency',
     currency: moneda === 'DOLARES' ? 'USD' : 'MXN',
@@ -296,7 +303,7 @@ export default function CotizacionPage() {
               <LogOut size={18} /> Salir
             </button>
             {activeTab === 'cotizacion' && (
-              <button className="btn btn-outline" onClick={() => window.print()}>
+              <button className="btn btn-outline" onClick={handlePrint}>
                 <Printer size={18} /> Imprimir PDF
               </button>
             )}
