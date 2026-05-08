@@ -15,6 +15,7 @@ interface Item {
   descripcion: string;
   precioUnitario: number;
   valorDolar: number;
+  isEditing?: boolean;
 }
 
 interface CotizacionData {
@@ -50,6 +51,7 @@ const emptyItem = (): Item => ({
   descripcion: '',
   precioUnitario: 0,
   valorDolar: 1,
+  isEditing: true,
 });
 
 export default function CotizacionPage() {
@@ -153,7 +155,7 @@ export default function CotizacionPage() {
     setMoneda(cotizacion.moneda);
     setObservaciones(cotizacion.observaciones);
     setTiempoEntrega(cotizacion.tiempoEntrega);
-    setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar || 1 })));
+    setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar || 1, isEditing: false })));
     setActiveTab('cotizacion');
   };
 
@@ -169,7 +171,7 @@ export default function CotizacionPage() {
       moneda,
       observaciones,
       tiempoEntrega,
-      items,
+      items: items.map(({ isEditing, ...rest }) => rest as Item),
     };
 
     try {
@@ -213,8 +215,15 @@ export default function CotizacionPage() {
     if (folio === cotizacion.folio) startNewCotizacion();
   };
 
-  const addItem = () => setItems((current) => [...current, emptyItem()]);
+  const addItem = () => setItems((current) => [
+    ...current.map(item => ({ ...item, isEditing: false })), 
+    emptyItem()
+  ]);
   const removeItem = (id: string) => setItems((current) => current.filter((item) => item.id !== id));
+
+  const toggleEditItem = (id: string) => setItems((current) => current.map((item) => (
+    item.id === id ? { ...item, isEditing: !item.isEditing } : item
+  )));
 
   const updateItem = (id: string, field: keyof Item, value: string | number) => {
     setItems((current) => current.map((item) => (
@@ -489,33 +498,77 @@ export default function CotizacionPage() {
                   <th style={{ width: '100px', textAlign: 'right' }}>Precio Unit.</th>
                   <th className="no-print" style={{ width: '95px', textAlign: 'right' }}>Valor Dolar</th>
                   <th style={{ width: '100px', textAlign: 'right' }}>Total</th>
-                  <th className="no-print" style={{ width: '40px' }}></th>
+                  <th className="no-print" style={{ width: '65px' }}></th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, index) => (
                   <tr key={item.id} className={index % 2 === 0 ? 'row-even' : 'row-odd'}>
-                    <td className="text-center">
-                      <input type="number" className="inline-input text-center" value={item.cantidad} onChange={(e) => updateItem(item.id, 'cantidad', parseFloat(e.target.value) || 0)} />
+                    <td className="text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                      {item.isEditing ? (
+                        <>
+                          <input type="number" className="inline-input text-center no-print" value={item.cantidad} onChange={(e) => updateItem(item.id, 'cantidad', parseFloat(e.target.value) || 0)} />
+                          <span className="print-only">{item.cantidad}</span>
+                        </>
+                      ) : (
+                        <span>{item.cantidad}</span>
+                      )}
                     </td>
-                    <td className="text-center">
-                      <input className="inline-input text-center" value={item.unidad} onChange={(e) => updateItem(item.id, 'unidad', e.target.value)} />
+                    <td className="text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                      {item.isEditing ? (
+                        <>
+                          <input className="inline-input text-center no-print" value={item.unidad} onChange={(e) => updateItem(item.id, 'unidad', e.target.value)} />
+                          <span className="print-only">{item.unidad}</span>
+                        </>
+                      ) : (
+                        <span>{item.unidad}</span>
+                      )}
                     </td>
-                    <td>
-                      <input className="inline-input" value={item.descripcion} onChange={(e) => updateItem(item.id, 'descripcion', e.target.value)} placeholder="Escriba aqui..." />
+                    <td style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                      {item.isEditing ? (
+                        <>
+                          <textarea
+                            className="inline-input no-print"
+                            value={item.descripcion}
+                            onChange={(e) => updateItem(item.id, 'descripcion', e.target.value)}
+                            placeholder="Escriba aqui..."
+                            rows={2}
+                            style={{ width: '100%', resize: 'vertical' }}
+                          />
+                          <div className="print-only" style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.descripcion}</div>
+                        </>
+                      ) : (
+                        <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.descripcion}</div>
+                      )}
                     </td>
-                    <td className="text-right">
-                      <span className="currency-prefix">$</span>
-                      <input type="number" className="inline-input text-right" value={item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', parseFloat(e.target.value) || 0)} style={{ width: '70px' }} />
+                    <td className="text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                      {item.isEditing ? (
+                        <>
+                          <span className="currency-prefix no-print">$</span>
+                          <input type="number" className="inline-input text-right no-print" value={item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', parseFloat(e.target.value) || 0)} style={{ width: '70px' }} />
+                          <span className="print-only">$ {item.precioUnitario.toFixed(2)}</span>
+                        </>
+                      ) : (
+                        <span>$ {item.precioUnitario.toFixed(2)}</span>
+                      )}
                     </td>
-                    <td className="no-print text-right">
-                      <input type="number" className="inline-input text-right" value={item.valorDolar} onChange={(e) => updateItem(item.id, 'valorDolar', parseFloat(e.target.value) || 1)} style={{ width: '70px' }} />
+                    <td className="no-print text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                      {item.isEditing ? (
+                        <input type="number" className="inline-input text-right" value={item.valorDolar} onChange={(e) => updateItem(item.id, 'valorDolar', parseFloat(e.target.value) || 1)} style={{ width: '70px' }} />
+                      ) : (
+                        <span>{item.valorDolar}</span>
+                      )}
                     </td>
-                    <td className="text-right" style={{ paddingRight: '0.5rem' }}>
+                    <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
                       $ {formatCurrency(item.cantidad * item.precioUnitario * (item.valorDolar || 1)).replace('$', '').replace('MXN', '').replace('USD', '').trim()}
                     </td>
-                    <td className="no-print text-center">
-                      <button className="text-danger" onClick={() => removeItem(item.id)}><Trash2 size={16} /></button>
+                    <td className="no-print text-center" style={{ verticalAlign: 'top', paddingTop: '0.25rem' }}>
+                      <button className="btn btn-outline" style={{ padding: '0.3rem', marginRight: '0.25rem', borderColor: 'transparent', minWidth: 'auto' }} onClick={() => toggleEditItem(item.id)} title={item.isEditing ? "Guardar Concepto" : "Modificar Concepto"}>
+                        {item.isEditing ? <Check size={16} style={{ color: '#16a34a' }} /> : <Edit size={16} style={{ color: '#2563eb' }} />}
+                      </button>
+                      <button className="text-danger btn btn-outline" style={{ padding: '0.3rem', borderColor: 'transparent', minWidth: 'auto' }} onClick={() => removeItem(item.id)} title="Eliminar Concepto">
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
