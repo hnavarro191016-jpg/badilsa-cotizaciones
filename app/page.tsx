@@ -813,7 +813,7 @@ export default function CotizacionPage() {
                 </tr>
               </thead>
               <tbody>
-                {currentOCParaVer.cotizacion?.items.map((item, index) => (
+                {currentOCParaVer.cotizacion?.items?.map((item, index) => (
                   <tr key={item.id} className={index % 2 === 0 ? 'row-even' : 'row-odd'}>
                     <td className="text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>{item.cantidad}</td>
                     <td className="text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>{item.unidad}</td>

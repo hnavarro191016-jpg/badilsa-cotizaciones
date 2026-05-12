@@ -5,7 +5,9 @@ export async function GET() {
   try {
     const ordenes = await prisma.ordenCompra.findMany({
       include: {
-        cotizacion: true
+        cotizacion: {
+          include: { items: true }
+        }
       },
       orderBy: { createdAt: 'desc' },
     });
