@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'ordenes' | 'ver_orden';
+type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios';
 type Mode = 'new' | 'edit';
 
 interface Item {
@@ -34,19 +34,6 @@ interface CotizacionData {
   createdAt?: string;
   updatedAt?: string;
   estatus?: string;
-  ordenCompra?: {
-    folio_oc: string;
-    estatus: string;
-  };
-}
-
-interface OrdenCompraData {
-  id: string;
-  folio_oc: string;
-  fecha: string;
-  total: number;
-  estatus: string;
-  cotizacion: CotizacionData;
 }
 
 interface UserData {
@@ -158,8 +145,6 @@ export default function CotizacionPage() {
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
   const [currentCotizacionId, setCurrentCotizacionId] = useState<string | null>(null);
-  const [currentCotizacionOC, setCurrentCotizacionOC] = useState<{folio_oc: string, estatus: string} | null>(null);
-  const [currentOCParaVer, setCurrentOCParaVer] = useState<OrdenCompraData | null>(null);
 
   const [folio, setFolio] = useState('');
   const [fecha, setFecha] = useState(todayInputValue());
@@ -172,9 +157,7 @@ export default function CotizacionPage() {
 
   const [historial, setHistorial] = useState<CotizacionData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
-  const [ordenes, setOrdenes] = useState<OrdenCompraData[]>([]);
   const [dashCotizaciones, setDashCotizaciones] = useState<any>(null);
-  const [dashOrdenes, setDashOrdenes] = useState<any>(null);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'ADMIN' | 'USER'>('USER');
@@ -193,7 +176,6 @@ export default function CotizacionPage() {
   useEffect(() => {
     fetchCurrentUser();
     fetchHistorial();
-    fetchOrdenes();
     fetchDashboards();
   }, []);
 
@@ -222,17 +204,9 @@ export default function CotizacionPage() {
     if (res.ok) setHistorial(await res.json());
   };
 
-  const fetchOrdenes = async () => {
-    const res = await fetch('/api/ordenes-compra');
-    if (res.ok) setOrdenes(await res.json());
-  };
-
   const fetchDashboards = async () => {
     const resCot = await fetch('/api/dashboard/cotizaciones-semanal');
     if (resCot.ok) setDashCotizaciones(await resCot.json());
-    
-    const resOrd = await fetch('/api/dashboard/ordenes-semanal');
-    if (resOrd.ok) setDashOrdenes(await resOrd.json());
   };
 
   const fetchUsers = async () => {
@@ -263,7 +237,6 @@ export default function CotizacionPage() {
     setTiempoEntrega('30 dias');
     setItems([emptyItem()]);
     setCurrentCotizacionId(null);
-    setCurrentCotizacionOC(null);
     setActiveTab('cotizacion');
   };
 
@@ -278,66 +251,9 @@ export default function CotizacionPage() {
     setTiempoEntrega(cotizacion.tiempoEntrega);
     setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar || 1, isEditing: false })));
     setCurrentCotizacionId(cotizacion.id || null);
-    setCurrentCotizacionOC(cotizacion.ordenCompra || null);
     setActiveTab('cotizacion');
   };
 
-  const loadOrdenCompra = (oc: OrdenCompraData) => {
-    setCurrentOCParaVer(oc);
-    setActiveTab('ver_orden');
-  };
-
-  const updateOrdenStatus = async (id: string, estatus: string) => {
-    setIsSaving(true);
-    try {
-      const res = await fetch('/api/ordenes-compra', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, estatus })
-      });
-      if (res.ok) {
-        showMessage('Estatus actualizado.');
-        await fetchOrdenes();
-      } else {
-        const data = await res.json();
-        showError(data.error || 'Error al actualizar estatus.');
-      }
-    } catch {
-      showError('Error de conexion.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const convertirAOrdenCompra = async () => {
-    if (!currentCotizacionId) return;
-    if (!window.confirm(`¿Convertir la cotización ${folio} en una Orden de Compra?`)) return;
-
-    setIsSaving(true);
-    try {
-      const res = await fetch('/api/ordenes-compra', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cotizacionId: currentCotizacionId })
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        showError(data.error || 'Error al convertir a OC.');
-        return;
-      }
-
-      showMessage('Orden de Compra generada.');
-      setCurrentCotizacionOC(data.data); // data.data is the new OC
-      await fetchHistorial();
-      await fetchOrdenes();
-      await fetchDashboards();
-    } catch {
-      showError('Error de conexion al convertir.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const saveCotizacion = async () => {
     setIsSaving(true);
@@ -477,11 +393,7 @@ export default function CotizacionPage() {
 
   const handlePrint = () => {
     const originalTitle = document.title;
-    if (activeTab === 'ver_orden' && currentOCParaVer) {
-      document.title = currentOCParaVer.folio_oc;
-    } else {
-      document.title = folio || 'Cotizacion';
-    }
+    document.title = folio || 'Cotizacion';
     window.print();
     setTimeout(() => { document.title = originalTitle; }, 100);
   };
@@ -508,7 +420,7 @@ export default function CotizacionPage() {
             <button className="btn btn-outline" onClick={handleLogout} style={{ color: '#ef4444', borderColor: '#ef4444' }}>
               <LogOut size={18} /> Salir
             </button>
-            {(activeTab === 'cotizacion' || activeTab === 'ver_orden') && (
+            {activeTab === 'cotizacion' && (
               <button className="btn btn-outline" onClick={handlePrint}>
                 <Printer size={18} /> Imprimir PDF
               </button>
@@ -522,11 +434,6 @@ export default function CotizacionPage() {
                   <Mail size={18} /> Correo
                 </button>
               </>
-            )}
-            {activeTab === 'cotizacion' && currentCotizacionId && !currentCotizacionOC && (
-              <button className="btn btn-outline" onClick={convertirAOrdenCompra} disabled={isSaving} style={{ color: '#16a34a', borderColor: '#16a34a' }}>
-                <Check size={18} /> Convertir a OC
-              </button>
             )}
             {activeTab === 'cotizacion' && (
               <button className="btn btn-primary" onClick={saveCotizacion} disabled={isSaving}>
@@ -548,9 +455,6 @@ export default function CotizacionPage() {
           </button>
           <button className={`tab-button ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={startNewCotizacion}>
             <Plus size={18} /> Generar Nueva Cotizacion
-          </button>
-          <button className={`tab-button ${activeTab === 'ordenes' ? 'active' : ''}`} onClick={() => setActiveTab('ordenes')}>
-            <History size={18} /> Órdenes de Compra
           </button>
           {currentUser?.role === 'ADMIN' && (
             <button className={`tab-button ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
@@ -672,66 +576,6 @@ export default function CotizacionPage() {
         </section>
       )}
 
-      {activeTab === 'ordenes' && (
-        <section className="panel-page no-print">
-          {dashOrdenes && (
-            <SimpleDashboard 
-              title="Dashboard Órdenes de Compra" 
-              total={dashOrdenes.total_ordenes_semana} 
-              totalMonto={dashOrdenes.total_monto_semana} 
-              porDia={dashOrdenes.ordenes_por_dia} 
-              montoPorDia={dashOrdenes.monto_por_dia}
-              formatCurrency={formatCurrency}
-            />
-          )}
-
-          <div className="panel-header">
-            <div>
-              <h2>Órdenes de Compra</h2>
-              <p>{ordenes.length} órdenes generadas</p>
-            </div>
-          </div>
-
-          <div className="history-table">
-            {ordenes.length === 0 ? (
-              <div className="empty-state">No hay órdenes de compra generadas.</div>
-            ) : (
-              ordenes.map((oc) => (
-                <div className="history-row" key={oc.id}>
-                  <div>
-                    <div className="font-bold">{oc.folio_oc}</div>
-                    <div className="text-sm text-gray">Cotización: {oc.cotizacion?.folio || 'N/A'} - {formatDisplayDate(oc.fecha?.split('T')[0] || '')}</div>
-                  </div>
-                  <div className="history-total" style={{ marginRight: '10px' }}>
-                    <select
-                      value={oc.estatus}
-                      onChange={(e) => updateOrdenStatus(oc.id, e.target.value)}
-                      style={{ fontSize: '0.875rem', padding: '0.25rem', borderRadius: '0.25rem', backgroundColor: '#e0f2fe', color: '#0369a1', marginRight: '1rem', border: '1px solid #bae6fd', cursor: 'pointer', outline: 'none' }}
-                      title="Cambiar estatus de la orden"
-                    >
-                      <option value="PENDIENTE">PENDIENTE</option>
-                      <option value="APROBADA">APROBADA</option>
-                      <option value="EN_PRODUCCION">EN_PRODUCCION</option>
-                      <option value="ENTREGADA">ENTREGADA</option>
-                      <option value="CANCELADA">CANCELADA</option>
-                    </select>
-                    {oc.cotizacion?.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${Number(oc.total || 0).toFixed(2)}
-                  </div>
-                  <div className="history-actions">
-                    <button className="btn btn-outline" onClick={() => loadOrdenCompra(oc)}>
-                      <Printer size={16} /> Ver OC
-                    </button>
-                    <button className="btn btn-outline" onClick={() => loadCotizacion(oc.cotizacion)}>
-                      <History size={16} /> Ver Cotización
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-      )}
-
       {activeTab === 'cotizacion' && (
         <div className="document-page">
           <div className="doc-header">
@@ -744,11 +588,6 @@ export default function CotizacionPage() {
                 style={{ width: '280px', marginLeft: '10px' }}
               />
               <span className="no-print mode-label">{mode === 'new' ? 'Nueva' : 'Editando'}</span>
-              {currentCotizacionOC && (
-                <div style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.25rem', display: 'inline-block', fontSize: '0.875rem', fontWeight: 'bold' }}>
-                  OC Generada: {currentCotizacionOC.folio_oc}
-                </div>
-              )}
             </div>
             <div className="doc-logo">
               <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '250px', height: 'auto' }} />
@@ -926,116 +765,6 @@ export default function CotizacionPage() {
               <input className="inline-input font-medium no-print delivery-input" value={tiempoEntrega} onChange={(e) => setTiempoEntrega(e.target.value)} placeholder="Ej. 15 dias" />
               <span className="print-only">{tiempoEntrega}</span>
             </p>
-            <p className="text-center" style={{ color: '#2563eb', marginTop: '1.5rem', textDecoration: 'underline' }}>www.badilsa.com</p>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'ver_orden' && currentOCParaVer && (
-        <div className="document-page">
-          <div className="doc-header">
-            <div className="doc-folio-box" style={{ borderColor: '#0369a1', color: '#0369a1' }}>
-              Orden de Compra
-              <input
-                className="inline-input folio-input"
-                value={currentOCParaVer.folio_oc}
-                readOnly
-                style={{ width: '280px', marginLeft: '10px', color: '#0369a1' }}
-              />
-            </div>
-            <div className="doc-logo">
-              <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '250px', height: 'auto' }} />
-            </div>
-          </div>
-
-          <div className="doc-company-info">
-            <div className="text-sm" style={{ color: '#333' }}>
-              <strong>BAAR361013-TU3</strong><br />
-              Carretera AguaFria Km 1.5 Apodaca,NL.<br />
-              CP 66620<br />
-              <span style={{ color: '#2563eb' }}>
-                ventas@mymdelnorte.com<br />
-                ventas@badilsa.com
-              </span>
-            </div>
-          </div>
-
-          <div className="doc-meta-blocks">
-            <div className="meta-block attention-block">
-              <div className="flex items-center gap-2">
-                <span style={{ width: '65px' }}>Atencion:</span>
-                <span className="font-bold">{currentOCParaVer.cotizacion?.atencion}</span>
-              </div>
-              <div className="flex items-center gap-2 mt-1">
-                <span style={{ width: '65px' }}>Empresa:</span>
-                <span className="font-bold">{currentOCParaVer.cotizacion?.empresa}</span>
-              </div>
-            </div>
-            <div className="meta-block date-block">
-              <span>fecha</span>
-              <span style={{ marginLeft: '10px' }}>{formatDisplayDate(currentOCParaVer.fecha.split('T')[0])}</span>
-            </div>
-          </div>
-
-          <p className="text-sm mb-4" style={{ marginTop: '1rem' }}>
-            Confirmación de Orden de Compra para los siguientes servicios:
-          </p>
-
-          <div className="table-container">
-            <table className="doc-table">
-              <thead>
-                <tr style={{ backgroundColor: '#e0f2fe' }}>
-                  <th style={{ width: '60px' }}>Cant.</th>
-                  <th style={{ width: '80px' }}>Unidad</th>
-                  <th>Descripcion</th>
-                  <th style={{ width: '100px', textAlign: 'right' }}>Precio Unit.</th>
-                  <th style={{ width: '100px', textAlign: 'right' }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentOCParaVer.cotizacion?.items?.map((item, index) => (
-                  <tr key={item.id} className={index % 2 === 0 ? 'row-even' : 'row-odd'}>
-                    <td className="text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>{item.cantidad}</td>
-                    <td className="text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>{item.unidad}</td>
-                    <td style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                      <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.descripcion}</div>
-                    </td>
-                    <td className="text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                      $ {item.precioUnitario.toFixed(2)}
-                    </td>
-                    <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                      $ {formatCurrency(item.cantidad * item.precioUnitario * (item.valorDolar || 1)).replace('$', '').replace('MXN', '').replace('USD', '').trim()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="doc-footer">
-            <div className="obs-block">
-              <div className="text-sm font-bold mb-1">OBSERVACIONES :</div>
-              <div style={{ whiteSpace: 'pre-wrap' }}>{currentOCParaVer.cotizacion?.observaciones}</div>
-            </div>
-            <div className="totals-block">
-              <div className="total-row">
-                <span className="total-label blue-bg">Sub-Total</span>
-                <span className="total-value">$ {formatCurrency(currentOCParaVer.cotizacion?.subTotal || 0).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
-              </div>
-              <div className="total-row">
-                <span className="total-label"></span>
-                <span className="total-value">$ {formatCurrency(currentOCParaVer.cotizacion?.iva || 0).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
-              </div>
-              <div className="total-row">
-                <span className="total-label blue-bg">Total</span>
-                <span className="total-value font-bold">$ {formatCurrency(currentOCParaVer.total || 0).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="doc-terms">
-            <p className="font-bold">Moneda: <span className="font-bold">{currentOCParaVer.cotizacion?.moneda}</span></p>
-            <p>Tiempo de entrega acordado: <span className="font-medium">{currentOCParaVer.cotizacion?.tiempoEntrega}</span></p>
             <p className="text-center" style={{ color: '#2563eb', marginTop: '1.5rem', textDecoration: 'underline' }}>www.badilsa.com</p>
           </div>
         </div>

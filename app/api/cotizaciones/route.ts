@@ -12,7 +12,7 @@ type ItemInput = {
 export async function GET() {
   try {
     const cotizaciones = await prisma.cotizacion.findMany({
-      include: { items: true, ordenCompra: true },
+      include: { items: true },
       orderBy: { createdAt: 'desc' },
     });
 
