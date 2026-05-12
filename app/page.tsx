@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios';
+type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'ordenes';
 type Mode = 'new' | 'edit';
 
 interface Item {
@@ -33,6 +33,20 @@ interface CotizacionData {
   items: Item[];
   createdAt?: string;
   updatedAt?: string;
+  estatus?: string;
+  ordenCompra?: {
+    folio_oc: string;
+    estatus: string;
+  };
+}
+
+interface OrdenCompraData {
+  id: string;
+  folio_oc: string;
+  fecha: string;
+  total: number;
+  estatus: string;
+  cotizacion: CotizacionData;
 }
 
 interface UserData {
@@ -60,6 +74,9 @@ export default function CotizacionPage() {
   const [mode, setMode] = useState<Mode>('new');
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
+  const [currentCotizacionId, setCurrentCotizacionId] = useState<string | null>(null);
+  const [currentCotizacionOC, setCurrentCotizacionOC] = useState<{folio_oc: string, estatus: string} | null>(null);
+
   const [folio, setFolio] = useState('');
   const [fecha, setFecha] = useState(todayInputValue());
   const [atencion, setAtencion] = useState('');
@@ -71,6 +88,7 @@ export default function CotizacionPage() {
 
   const [historial, setHistorial] = useState<CotizacionData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
+  const [ordenes, setOrdenes] = useState<OrdenCompraData[]>([]);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'ADMIN' | 'USER'>('USER');
@@ -89,6 +107,7 @@ export default function CotizacionPage() {
   useEffect(() => {
     fetchCurrentUser();
     fetchHistorial();
+    fetchOrdenes();
   }, []);
 
   useEffect(() => {
@@ -114,6 +133,11 @@ export default function CotizacionPage() {
   const fetchHistorial = async () => {
     const res = await fetch('/api/cotizaciones');
     if (res.ok) setHistorial(await res.json());
+  };
+
+  const fetchOrdenes = async () => {
+    const res = await fetch('/api/ordenes-compra');
+    if (res.ok) setOrdenes(await res.json());
   };
 
   const fetchUsers = async () => {
@@ -143,6 +167,8 @@ export default function CotizacionPage() {
     setObservaciones('');
     setTiempoEntrega('30 dias');
     setItems([emptyItem()]);
+    setCurrentCotizacionId(null);
+    setCurrentCotizacionOC(null);
     setActiveTab('cotizacion');
   };
 
@@ -156,7 +182,38 @@ export default function CotizacionPage() {
     setObservaciones(cotizacion.observaciones);
     setTiempoEntrega(cotizacion.tiempoEntrega);
     setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar || 1, isEditing: false })));
+    setCurrentCotizacionId(cotizacion.id || null);
+    setCurrentCotizacionOC(cotizacion.ordenCompra || null);
     setActiveTab('cotizacion');
+  };
+
+  const convertirAOrdenCompra = async () => {
+    if (!currentCotizacionId) return;
+    if (!window.confirm(`¿Convertir la cotización ${folio} en una Orden de Compra?`)) return;
+
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/ordenes-compra', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cotizacionId: currentCotizacionId })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        showError(data.error || 'Error al convertir a OC.');
+        return;
+      }
+
+      showMessage('Orden de Compra generada.');
+      setCurrentCotizacionOC(data.data); // data.data is the new OC
+      await fetchHistorial();
+      await fetchOrdenes();
+    } catch {
+      showError('Error de conexion al convertir.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const saveCotizacion = async () => {
@@ -307,6 +364,11 @@ export default function CotizacionPage() {
                 <Printer size={18} /> Imprimir PDF
               </button>
             )}
+            {activeTab === 'cotizacion' && currentCotizacionId && !currentCotizacionOC && (
+              <button className="btn btn-outline" onClick={convertirAOrdenCompra} disabled={isSaving} style={{ color: '#16a34a', borderColor: '#16a34a' }}>
+                <Check size={18} /> Convertir a OC
+              </button>
+            )}
             {activeTab === 'cotizacion' && (
               <button className="btn btn-primary" onClick={saveCotizacion} disabled={isSaving}>
                 {message ? <Check size={18} /> : <Save size={18} />}
@@ -327,6 +389,9 @@ export default function CotizacionPage() {
           </button>
           <button className={`tab-button ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={startNewCotizacion}>
             <Plus size={18} /> Generar Nueva Cotizacion
+          </button>
+          <button className={`tab-button ${activeTab === 'ordenes' ? 'active' : ''}`} onClick={() => setActiveTab('ordenes')}>
+            <History size={18} /> Órdenes de Compra
           </button>
           {currentUser?.role === 'ADMIN' && (
             <button className={`tab-button ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
@@ -437,6 +502,43 @@ export default function CotizacionPage() {
         </section>
       )}
 
+      {activeTab === 'ordenes' && (
+        <section className="panel-page no-print">
+          <div className="panel-header">
+            <div>
+              <h2>Órdenes de Compra</h2>
+              <p>{ordenes.length} órdenes generadas</p>
+            </div>
+          </div>
+
+          <div className="history-table">
+            {ordenes.length === 0 ? (
+              <div className="empty-state">No hay órdenes de compra generadas.</div>
+            ) : (
+              ordenes.map((oc) => (
+                <div className="history-row" key={oc.id}>
+                  <div>
+                    <div className="font-bold">{oc.folio_oc}</div>
+                    <div className="text-sm text-gray">Cotización: {oc.cotizacion?.folio || 'N/A'} - {formatDisplayDate(oc.fecha?.split('T')[0] || '')}</div>
+                  </div>
+                  <div className="history-total" style={{ marginRight: '10px' }}>
+                    <span style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', backgroundColor: '#e0f2fe', color: '#0369a1', marginRight: '1rem' }}>
+                      {oc.estatus}
+                    </span>
+                    {oc.cotizacion?.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${Number(oc.total || 0).toFixed(2)}
+                  </div>
+                  <div className="history-actions">
+                    <button className="btn btn-outline" onClick={() => loadCotizacion(oc.cotizacion)}>
+                      <History size={16} /> Ver Cotización
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
       {activeTab === 'cotizacion' && (
         <div className="document-page">
           <div className="doc-header">
@@ -449,6 +551,11 @@ export default function CotizacionPage() {
                 style={{ width: '280px', marginLeft: '10px' }}
               />
               <span className="no-print mode-label">{mode === 'new' ? 'Nueva' : 'Editando'}</span>
+              {currentCotizacionOC && (
+                <div style={{ marginTop: '0.5rem', padding: '0.25rem 0.5rem', backgroundColor: '#dcfce7', color: '#166534', borderRadius: '0.25rem', display: 'inline-block', fontSize: '0.875rem', fontWeight: 'bold' }}>
+                  OC Generada: {currentCotizacionOC.folio_oc}
+                </div>
+              )}
             </div>
             <div className="doc-logo">
               <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '250px', height: 'auto' }} />
