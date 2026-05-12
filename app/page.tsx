@@ -415,13 +415,10 @@ export default function CotizacionPage() {
       showError('Por favor guarda la cotización primero para generar un enlace.');
       return;
     }
-    const phone = window.prompt('Ingresa el número de WhatsApp del cliente (ej. 521234567890):', '52');
-    if (!phone) return;
-
     const publicUrl = `${window.location.origin}/cotizacion/ver/${currentCotizacionId}`;
     const text = `Hola, te comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}.\n\nPuedes verla y descargar el PDF aquí:\n${publicUrl}\n\nQuedo a tus órdenes.`;
-    const cleanPhone = phone.replace(/\D/g, ''); 
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleSendEmail = () => {
