@@ -58,6 +58,68 @@ interface UserData {
 
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
 
+const SimpleDashboard = ({ 
+  title, 
+  total, 
+  totalMonto, 
+  porDia, 
+  montoPorDia, 
+  formatCurrency 
+}: any) => {
+  if (!porDia || !montoPorDia) return null;
+  const maxCantidad = Math.max(...porDia.map((d: any) => d.cantidad), 1);
+  const maxMonto = Math.max(...montoPorDia.map((d: any) => d.total), 1);
+
+  return (
+    <div className="dashboard-container" style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+      <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a' }}>{title} (Últimos 7 días)</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Total</div>
+          <div style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#0369a1' }}>{total}</div>
+        </div>
+        <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Monto Total</div>
+          <div style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#16a34a' }}>$ {formatCurrency(totalMonto).replace('MXN','').replace('USD','').trim()}</div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#475569' }}>Volumen por Día</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', height: '120px', gap: '4px' }}>
+            {porDia.map((d: any, i: number) => {
+              const height = (d.cantidad / maxCantidad) * 100;
+              return (
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>{d.cantidad}</div>
+                  <div style={{ width: '100%', backgroundColor: '#0ea5e9', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0' }}></div>
+                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', transform: 'rotate(-45deg)', transformOrigin: 'top left', whiteSpace: 'nowrap' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#475569' }}>Monto por Día</div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', height: '120px', gap: '4px' }}>
+            {montoPorDia.map((d: any, i: number) => {
+              const height = (d.total / maxMonto) * 100;
+              return (
+                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>${(d.total/1000).toFixed(0)}k</div>
+                  <div style={{ width: '100%', backgroundColor: '#22c55e', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0' }}></div>
+                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', transform: 'rotate(-45deg)', transformOrigin: 'top left', whiteSpace: 'nowrap' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div style={{ height: '20px' }}></div>
+    </div>
+  );
+};
+
 const emptyItem = (): Item => ({
   id: Date.now().toString(),
   cantidad: 1,
@@ -90,6 +152,8 @@ export default function CotizacionPage() {
   const [historial, setHistorial] = useState<CotizacionData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [ordenes, setOrdenes] = useState<OrdenCompraData[]>([]);
+  const [dashCotizaciones, setDashCotizaciones] = useState<any>(null);
+  const [dashOrdenes, setDashOrdenes] = useState<any>(null);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'ADMIN' | 'USER'>('USER');
@@ -109,6 +173,7 @@ export default function CotizacionPage() {
     fetchCurrentUser();
     fetchHistorial();
     fetchOrdenes();
+    fetchDashboards();
   }, []);
 
   useEffect(() => {
@@ -139,6 +204,14 @@ export default function CotizacionPage() {
   const fetchOrdenes = async () => {
     const res = await fetch('/api/ordenes-compra');
     if (res.ok) setOrdenes(await res.json());
+  };
+
+  const fetchDashboards = async () => {
+    const resCot = await fetch('/api/dashboard/cotizaciones-semanal');
+    if (resCot.ok) setDashCotizaciones(await resCot.json());
+    
+    const resOrd = await fetch('/api/dashboard/ordenes-semanal');
+    if (resOrd.ok) setDashOrdenes(await resOrd.json());
   };
 
   const fetchUsers = async () => {
@@ -215,6 +288,7 @@ export default function CotizacionPage() {
       setCurrentCotizacionOC(data.data); // data.data is the new OC
       await fetchHistorial();
       await fetchOrdenes();
+      await fetchDashboards();
     } catch {
       showError('Error de conexion al convertir.');
     } finally {
@@ -437,6 +511,17 @@ export default function CotizacionPage() {
 
       {activeTab === 'historial' && (
         <section className="panel-page no-print">
+          {dashCotizaciones && (
+            <SimpleDashboard 
+              title="Dashboard Cotizaciones" 
+              total={dashCotizaciones.total_cotizaciones_semana} 
+              totalMonto={dashCotizaciones.total_monto_semana} 
+              porDia={dashCotizaciones.cotizaciones_por_dia} 
+              montoPorDia={dashCotizaciones.monto_por_dia}
+              formatCurrency={formatCurrency}
+            />
+          )}
+
           <div className="panel-header">
             <div>
               <h2>Historial de Cotizaciones</h2>
@@ -514,6 +599,17 @@ export default function CotizacionPage() {
 
       {activeTab === 'ordenes' && (
         <section className="panel-page no-print">
+          {dashOrdenes && (
+            <SimpleDashboard 
+              title="Dashboard Órdenes de Compra" 
+              total={dashOrdenes.total_ordenes_semana} 
+              totalMonto={dashOrdenes.total_monto_semana} 
+              porDia={dashOrdenes.ordenes_por_dia} 
+              montoPorDia={dashOrdenes.monto_por_dia}
+              formatCurrency={formatCurrency}
+            />
+          )}
+
           <div className="panel-header">
             <div>
               <h2>Órdenes de Compra</h2>
