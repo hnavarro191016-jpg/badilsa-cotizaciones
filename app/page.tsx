@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus } from 'lucide-react';
+import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'ordenes' | 'ver_orden';
@@ -410,6 +410,17 @@ export default function CotizacionPage() {
     router.refresh();
   };
 
+  const handleSendWhatsApp = () => {
+    const text = `Hola, te comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}. Quedo a tus órdenes.`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleSendEmail = () => {
+    const subject = `Cotización ${folio} - Badilsa`;
+    const body = `Hola,\n\nTe comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}.\n\nQuedo a tus órdenes.\n\nSaludos.`;
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const handlePrint = () => {
     const originalTitle = document.title;
     if (activeTab === 'ver_orden' && currentOCParaVer) {
@@ -447,6 +458,16 @@ export default function CotizacionPage() {
               <button className="btn btn-outline" onClick={handlePrint}>
                 <Printer size={18} /> Imprimir PDF
               </button>
+            )}
+            {activeTab === 'cotizacion' && currentCotizacionId && (
+              <>
+                <button className="btn btn-outline" onClick={handleSendWhatsApp} style={{ color: '#16a34a', borderColor: '#16a34a' }} title="Compartir texto por WhatsApp">
+                  <MessageCircle size={18} /> WhatsApp
+                </button>
+                <button className="btn btn-outline" onClick={handleSendEmail} style={{ color: '#2563eb', borderColor: '#2563eb' }} title="Compartir texto por Correo">
+                  <Mail size={18} /> Correo
+                </button>
+              </>
             )}
             {activeTab === 'cotizacion' && currentCotizacionId && !currentCotizacionOC && (
               <button className="btn btn-outline" onClick={convertirAOrdenCompra} disabled={isSaving} style={{ color: '#16a34a', borderColor: '#16a34a' }}>
