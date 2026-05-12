@@ -2,10 +2,10 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText } from 'lucide-react';
+import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios';
+type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'reportes';
 type Mode = 'new' | 'edit';
 
 interface Item {
@@ -162,6 +162,8 @@ export default function CotizacionPage() {
   const [historial, setHistorial] = useState<CotizacionData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
   const [dashCotizaciones, setDashCotizaciones] = useState<any>(null);
+  const [reportData, setReportData] = useState<any>(null);
+  const [reportFilters, setReportFilters] = useState({ fechaInicio: '', fechaFin: '', empresa: '' });
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'ADMIN' | 'USER'>('USER');
@@ -182,6 +184,28 @@ export default function CotizacionPage() {
     fetchHistorial();
     fetchDashboards();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'reportes') {
+      fetchReportes();
+    }
+  }, [activeTab]);
+
+  const fetchReportes = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (reportFilters.fechaInicio) params.append('fechaInicio', reportFilters.fechaInicio);
+      if (reportFilters.fechaFin) params.append('fechaFin', reportFilters.fechaFin);
+      if (reportFilters.empresa) params.append('empresa', reportFilters.empresa);
+
+      const res = await fetch(`/api/reportes?${params.toString()}`);
+      if (res.ok) {
+        setReportData(await res.json());
+      }
+    } catch (e) {
+      showError('Error al cargar reportes');
+    }
+  };
 
   useEffect(() => {
     if (currentUser?.role === 'ADMIN') fetchUsers();
@@ -534,6 +558,9 @@ export default function CotizacionPage() {
           <button className={`tab-button ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={startNewCotizacion}>
             <Plus size={18} /> Generar Nueva Cotizacion
           </button>
+          <button className={`tab-button ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
+            <PieChart size={18} /> Reportes
+          </button>
           {currentUser?.role === 'ADMIN' && (
             <button className={`tab-button ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
               <UserPlus size={18} /> Usuarios
@@ -647,6 +674,85 @@ export default function CotizacionPage() {
             style={{ display: 'none' }}
             onChange={handleFileChange}
           />
+        </section>
+      )}
+
+      {activeTab === 'reportes' && (
+        <section className="panel-page no-print">
+          <div className="panel-header" style={{ marginBottom: '1.5rem' }}>
+            <div>
+              <h2>Módulo de Reportes</h2>
+              <p>Análisis de cotizaciones, órdenes de compra y conversión.</p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'white', padding: '0.5rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+                <Filter size={16} color="#64748b" />
+                <input type="date" className="inline-input" style={{ padding: '2px', fontSize: '0.875rem' }} value={reportFilters.fechaInicio} onChange={(e) => setReportFilters({...reportFilters, fechaInicio: e.target.value})} title="Fecha Inicio" />
+                <span style={{ color: '#64748b' }}>-</span>
+                <input type="date" className="inline-input" style={{ padding: '2px', fontSize: '0.875rem' }} value={reportFilters.fechaFin} onChange={(e) => setReportFilters({...reportFilters, fechaFin: e.target.value})} title="Fecha Fin" />
+              </div>
+              <input type="text" className="inline-input" placeholder="Filtrar por Cliente..." style={{ padding: '0.5rem', fontSize: '0.875rem', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }} value={reportFilters.empresa} onChange={(e) => setReportFilters({...reportFilters, empresa: e.target.value})} />
+              <button className="btn btn-primary" onClick={fetchReportes}>Aplicar Filtros</button>
+            </div>
+          </div>
+
+          {!reportData ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>Cargando reportes...</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              {/* KPIs Principales */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Total Cotizaciones</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0f172a' }}>{reportData.resumen.totalCotizaciones}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#16a34a', marginTop: '0.5rem' }}>Monto: $ {formatCurrency(reportData.resumen.montoTotalCotizado).replace('MXN','').replace('USD','').trim()}</div>
+                </div>
+                
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Órdenes de Compra</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0369a1' }}>{reportData.resumen.totalOrdenes}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#16a34a', marginTop: '0.5rem' }}>Monto: $ {formatCurrency(reportData.resumen.montoTotalOrdenes).replace('MXN','').replace('USD','').trim()}</div>
+                </div>
+
+                <div style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)', padding: '1.5rem', borderRadius: '1rem', color: 'white', boxShadow: '0 10px 15px -3px rgba(79,70,229,0.3)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 'bold', textTransform: 'uppercase', opacity: 0.9 }}>Tasa de Conversión</div>
+                    <Target size={20} style={{ opacity: 0.8 }} />
+                  </div>
+                  <div style={{ fontSize: '2rem', fontWeight: '800' }}>{reportData.resumen.conversionPorcentaje}%</div>
+                  <div style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.9 }}>{reportData.resumen.cotizacionesSinOC} cotizaciones sin OC</div>
+                </div>
+              </div>
+
+              {/* Clientes */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><DollarSign size={18} color="#16a34a" /> Top 5 Clientes por Monto</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {reportData.clientes.topMonto.length === 0 && <p className="text-gray text-sm">No hay datos</p>}
+                    {reportData.clientes.topMonto.map((c: any, i: number) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
+                        <span style={{ fontWeight: '500', color: '#334155' }}>{c.nombre || 'Desconocido'}</span>
+                        <span style={{ fontWeight: 'bold', color: '#16a34a' }}>$ {formatCurrency(c.monto).replace('MXN','').replace('USD','').trim()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} color="#0284c7" /> Top 5 Clientes por Volumen</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {reportData.clientes.topCotizaciones.length === 0 && <p className="text-gray text-sm">No hay datos</p>}
+                    {reportData.clientes.topCotizaciones.map((c: any, i: number) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
+                        <span style={{ fontWeight: '500', color: '#334155' }}>{c.nombre || 'Desconocido'}</span>
+                        <span style={{ fontWeight: 'bold', color: '#0284c7' }}>{c.cantidad} cotizaciones</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
