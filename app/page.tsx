@@ -127,6 +127,45 @@ const SimpleDashboard = ({
         </div>
       </div>
     </div>
+    </div>
+  );
+};
+
+const EstatusOCDashboard = ({ historial }: { historial: any[] }) => {
+  const pendientes = historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE');
+  const recibidas = historial.filter((c) => c.estatusOC === 'RECIBIDA');
+  const validadas = historial.filter((c) => c.estatusOC === 'VALIDADA');
+
+  return (
+    <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'linear-gradient(to right bottom, #ffffff, #f8fafc)', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+        <Check size={24} color="#16a34a" />
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Dashboard Estatus Órdenes de Compra</h3>
+      </div>
+      
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+        {/* PENDIENTE */}
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #eab308', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#eab308', textTransform: 'uppercase', marginBottom: '0.5rem' }}>🟡 Falta OC (Pendiente)</div>
+          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#334155', lineHeight: 1 }}>{pendientes.length}</div>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem', lineHeight: 1.4 }}>Cotizaciones esperando que el cliente mande su OC.</p>
+        </div>
+
+        {/* RECIBIDA */}
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #16a34a', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#16a34a', textTransform: 'uppercase', marginBottom: '0.5rem' }}>🟢 Falta Validar (Recibida)</div>
+          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#334155', lineHeight: 1 }}>{recibidas.length}</div>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem', lineHeight: 1.4 }}>Tienen PDF cargado, puedes revisarlo y validarlo.</p>
+        </div>
+
+        {/* VALIDADA */}
+        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #2563eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#2563eb', textTransform: 'uppercase', marginBottom: '0.5rem' }}>🔵 Proceso Completado</div>
+          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#334155', lineHeight: 1 }}>{validadas.length}</div>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem', lineHeight: 1.4 }}>Órdenes validadas correctamente.</p>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -605,6 +644,8 @@ export default function CotizacionPage() {
               formatCurrency={formatCurrency}
             />
           )}
+
+          <EstatusOCDashboard historial={historial} />
 
           <div className="panel-header">
             <div>
