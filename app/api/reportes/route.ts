@@ -25,28 +25,31 @@ export async function GET(request: Request) {
 
     // A) Cotizaciones
     const totalCotizaciones = cotizaciones.length;
-    const montoTotalCotizado = cotizaciones.reduce((acc, curr) => acc + curr.total, 0);
+    const montoTotalCotizadoMXN = cotizaciones.filter(c => c.moneda === 'PESOS' || c.moneda === 'MXN').reduce((acc, curr) => acc + curr.total, 0);
+    const montoTotalCotizadoUSD = cotizaciones.filter(c => c.moneda === 'DOLARES' || c.moneda === 'USD').reduce((acc, curr) => acc + curr.total, 0);
 
     // B) Órdenes de Compra
     const ocRecibidas = cotizaciones.filter(c => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA' || c.archivosOC.length > 0);
     const totalOrdenes = ocRecibidas.length;
-    const montoTotalOrdenes = ocRecibidas.reduce((acc, curr) => acc + curr.total, 0);
+    const montoTotalOrdenesMXN = ocRecibidas.filter(c => c.moneda === 'PESOS' || c.moneda === 'MXN').reduce((acc, curr) => acc + curr.total, 0);
+    const montoTotalOrdenesUSD = ocRecibidas.filter(c => c.moneda === 'DOLARES' || c.moneda === 'USD').reduce((acc, curr) => acc + curr.total, 0);
 
     // C) Conversión
     const conversionPorcentaje = totalCotizaciones > 0 ? ((totalOrdenes / totalCotizaciones) * 100).toFixed(1) : 0;
     const cotizacionesSinOC = totalCotizaciones - totalOrdenes;
 
     // D) Clientes (Top 5 por monto)
-    const clientesMap: Record<string, { total: number; count: number }> = {};
+    const clientesMap: Record<string, { totalMXN: number; totalUSD: number; count: number }> = {};
     cotizaciones.forEach(c => {
-      if (!clientesMap[c.empresa]) clientesMap[c.empresa] = { total: 0, count: 0 };
-      clientesMap[c.empresa].total += c.total;
+      if (!clientesMap[c.empresa]) clientesMap[c.empresa] = { totalMXN: 0, totalUSD: 0, count: 0 };
+      if (c.moneda === 'DOLARES' || c.moneda === 'USD') clientesMap[c.empresa].totalUSD += c.total;
+      else clientesMap[c.empresa].totalMXN += c.total;
       clientesMap[c.empresa].count += 1;
     });
 
     const topClientesMonto = Object.entries(clientesMap)
-      .map(([nombre, data]) => ({ nombre, monto: data.total }))
-      .sort((a, b) => b.monto - a.monto)
+      .map(([nombre, data]) => ({ nombre, montoMXN: data.totalMXN, montoUSD: data.totalUSD, sortValue: data.totalMXN + (data.totalUSD * 17) }))
+      .sort((a, b) => b.sortValue - a.sortValue)
       .slice(0, 5);
 
     const topClientesCotizaciones = Object.entries(clientesMap)
@@ -55,19 +58,21 @@ export async function GET(request: Request) {
       .slice(0, 5);
 
     // Agrupar por día para gráficas
-    const cotizacionesPorDia: Record<string, { cantidad: number; monto: number }> = {};
-    const ordenesPorDia: Record<string, { cantidad: number; monto: number }> = {};
+    const cotizacionesPorDia: Record<string, { cantidad: number; montoMXN: number; montoUSD: number }> = {};
+    const ordenesPorDia: Record<string, { cantidad: number; montoMXN: number; montoUSD: number }> = {};
 
     cotizaciones.forEach(c => {
       const fecha = c.createdAt.toISOString().split('T')[0];
-      if (!cotizacionesPorDia[fecha]) cotizacionesPorDia[fecha] = { cantidad: 0, monto: 0 };
+      if (!cotizacionesPorDia[fecha]) cotizacionesPorDia[fecha] = { cantidad: 0, montoMXN: 0, montoUSD: 0 };
       cotizacionesPorDia[fecha].cantidad += 1;
-      cotizacionesPorDia[fecha].monto += c.total;
+      if (c.moneda === 'DOLARES' || c.moneda === 'USD') cotizacionesPorDia[fecha].montoUSD += c.total;
+      else cotizacionesPorDia[fecha].montoMXN += c.total;
 
       if (c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA' || c.archivosOC.length > 0) {
-        if (!ordenesPorDia[fecha]) ordenesPorDia[fecha] = { cantidad: 0, monto: 0 };
+        if (!ordenesPorDia[fecha]) ordenesPorDia[fecha] = { cantidad: 0, montoMXN: 0, montoUSD: 0 };
         ordenesPorDia[fecha].cantidad += 1;
-        ordenesPorDia[fecha].monto += c.total;
+        if (c.moneda === 'DOLARES' || c.moneda === 'USD') ordenesPorDia[fecha].montoUSD += c.total;
+        else ordenesPorDia[fecha].montoMXN += c.total;
       }
     });
 
@@ -79,9 +84,11 @@ export async function GET(request: Request) {
     return NextResponse.json({
       resumen: {
         totalCotizaciones,
-        montoTotalCotizado,
+        montoTotalCotizadoMXN,
+        montoTotalCotizadoUSD,
         totalOrdenes,
-        montoTotalOrdenes,
+        montoTotalOrdenesMXN,
+        montoTotalOrdenesUSD,
         conversionPorcentaje,
         cotizacionesSinOC
       },

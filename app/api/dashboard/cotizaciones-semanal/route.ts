@@ -16,29 +16,39 @@ export async function GET() {
       select: {
         createdAt: true,
         total: true,
+        moneda: true,
       },
     });
 
     let total_cotizaciones_semana = 0;
-    let total_monto_semana = 0;
-    const porDia: Record<string, { cantidad: number; total: number }> = {};
+    let total_monto_semana_mxn = 0;
+    let total_monto_semana_usd = 0;
+    const porDia: Record<string, { cantidad: number; totalMXN: number; totalUSD: number }> = {};
 
     // Initialize last 7 days to 0
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateString = d.toISOString().split('T')[0];
-      porDia[dateString] = { cantidad: 0, total: 0 };
+      porDia[dateString] = { cantidad: 0, totalMXN: 0, totalUSD: 0 };
     }
 
     cotizaciones.forEach((c) => {
       total_cotizaciones_semana++;
-      total_monto_semana += c.total || 0;
+      if (c.moneda === 'DOLARES' || c.moneda === 'USD') {
+        total_monto_semana_usd += c.total || 0;
+      } else {
+        total_monto_semana_mxn += c.total || 0;
+      }
       
       const dateString = c.createdAt.toISOString().split('T')[0];
       if (porDia[dateString]) {
         porDia[dateString].cantidad++;
-        porDia[dateString].total += c.total || 0;
+        if (c.moneda === 'DOLARES' || c.moneda === 'USD') {
+          porDia[dateString].totalUSD += c.total || 0;
+        } else {
+          porDia[dateString].totalMXN += c.total || 0;
+        }
       }
     });
 
@@ -49,12 +59,14 @@ export async function GET() {
 
     const monto_por_dia = Object.keys(porDia).map((fecha) => ({
       fecha,
-      total: porDia[fecha].total,
+      totalMXN: porDia[fecha].totalMXN,
+      totalUSD: porDia[fecha].totalUSD,
     }));
 
     return NextResponse.json({
       total_cotizaciones_semana,
-      total_monto_semana,
+      total_monto_semana_mxn,
+      total_monto_semana_usd,
       cotizaciones_por_dia,
       monto_por_dia,
     });

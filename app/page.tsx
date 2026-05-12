@@ -50,14 +50,15 @@ const todayInputValue = () => new Date().toISOString().slice(0, 10);
 const SimpleDashboard = ({ 
   title, 
   total, 
-  totalMonto, 
+  totalMontoMXN, 
+  totalMontoUSD, 
   porDia, 
   montoPorDia, 
   formatCurrency 
 }: any) => {
   if (!porDia || !montoPorDia) return null;
   const maxCantidad = Math.max(...porDia.map((d: any) => d.cantidad), 1);
-  const maxMonto = Math.max(...montoPorDia.map((d: any) => d.total), 1);
+  const maxMonto = Math.max(...montoPorDia.map((d: any) => Math.max(d.totalMXN || 0, d.totalUSD || 0)), 1);
 
   return (
     <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'linear-gradient(to right bottom, #ffffff, #f8fafc)', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
@@ -80,7 +81,10 @@ const SimpleDashboard = ({
             <div style={{ fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>Ingreso Total</div>
             <DollarSign size={20} style={{ opacity: 0.8 }} />
           </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>$ {formatCurrency(totalMonto).replace('MXN','').replace('USD','').trim()}</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', lineHeight: 1.2 }}>
+            <span style={{ fontSize: '1rem', opacity: 0.9 }}>MXN </span>${formatCurrency(totalMontoMXN).replace('MXN','').replace('USD','').trim()}<br/>
+            <span style={{ fontSize: '1rem', opacity: 0.9 }}>USD </span>${formatCurrency(totalMontoUSD).replace('MXN','').replace('USD','').trim()}
+          </div>
         </div>
       </div>
 
@@ -112,12 +116,17 @@ const SimpleDashboard = ({
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', height: '140px', gap: '8px' }}>
             {montoPorDia.map((d: any, i: number) => {
-              const height = (d.total / maxMonto) * 100;
+              const heightMXN = maxMonto > 0 ? (d.totalMXN / maxMonto) * 100 : 0;
+              const heightUSD = maxMonto > 0 ? (d.totalUSD / maxMonto) * 100 : 0;
               return (
                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: '#059669', marginBottom: '4px', opacity: d.total > 0 ? 1 : 0 }}>${(d.total/1000).toFixed(1)}k</div>
-                  <div style={{ width: '100%', backgroundColor: '#d1fae5', height: '100%', display: 'flex', alignItems: 'flex-end', borderRadius: '4px' }}>
-                    <div style={{ width: '100%', backgroundColor: '#10b981', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '4px', transition: 'height 0.5s ease' }}></div>
+                  <div style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#059669', marginBottom: '2px', opacity: d.totalMXN > 0 || d.totalUSD > 0 ? 1 : 0, textAlign: 'center' }}>
+                    {d.totalMXN > 0 && <div>MXN ${(d.totalMXN/1000).toFixed(1)}k</div>}
+                    {d.totalUSD > 0 && <div style={{color: '#0f766e'}}>USD ${(d.totalUSD/1000).toFixed(1)}k</div>}
+                  </div>
+                  <div style={{ width: '100%', backgroundColor: '#d1fae5', height: '100%', display: 'flex', alignItems: 'flex-end', borderRadius: '4px', gap: '2px' }}>
+                    <div style={{ flex: 1, backgroundColor: '#10b981', height: `${heightMXN}%`, minHeight: heightMXN > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0', transition: 'height 0.5s ease' }} title={`MXN ${d.totalMXN}`}></div>
+                    <div style={{ flex: 1, backgroundColor: '#0f766e', height: `${heightUSD}%`, minHeight: heightUSD > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0', transition: 'height 0.5s ease' }} title={`USD ${d.totalUSD}`}></div>
                   </div>
                   <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '8px', fontWeight: '500' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
                 </div>
@@ -637,7 +646,8 @@ export default function CotizacionPage() {
             <SimpleDashboard 
               title="Dashboard Cotizaciones" 
               total={dashCotizaciones.total_cotizaciones_semana} 
-              totalMonto={dashCotizaciones.total_monto_semana} 
+              totalMontoMXN={dashCotizaciones.total_monto_semana_mxn} 
+              totalMontoUSD={dashCotizaciones.total_monto_semana_usd} 
               porDia={dashCotizaciones.cotizaciones_por_dia} 
               montoPorDia={dashCotizaciones.monto_por_dia}
               formatCurrency={formatCurrency}
@@ -745,13 +755,19 @@ export default function CotizacionPage() {
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Total Cotizaciones</div>
                   <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0f172a' }}>{reportData.resumen.totalCotizaciones}</div>
-                  <div style={{ fontSize: '0.875rem', color: '#16a34a', marginTop: '0.5rem' }}>Monto: $ {formatCurrency(reportData.resumen.montoTotalCotizado).replace('MXN','').replace('USD','').trim()}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#16a34a', marginTop: '0.5rem', fontWeight: '500' }}>
+                    MXN: ${formatCurrency(reportData.resumen.montoTotalCotizadoMXN).replace('MXN','').trim()} <br/>
+                    USD: ${formatCurrency(reportData.resumen.montoTotalCotizadoUSD).replace('USD','').trim()}
+                  </div>
                 </div>
                 
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Órdenes de Compra</div>
                   <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0369a1' }}>{reportData.resumen.totalOrdenes}</div>
-                  <div style={{ fontSize: '0.875rem', color: '#16a34a', marginTop: '0.5rem' }}>Monto: $ {formatCurrency(reportData.resumen.montoTotalOrdenes).replace('MXN','').replace('USD','').trim()}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#0369a1', marginTop: '0.5rem', fontWeight: '500' }}>
+                    MXN: ${formatCurrency(reportData.resumen.montoTotalOrdenesMXN).replace('MXN','').trim()} <br/>
+                    USD: ${formatCurrency(reportData.resumen.montoTotalOrdenesUSD).replace('USD','').trim()}
+                  </div>
                 </div>
 
                 <div style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)', padding: '1.5rem', borderRadius: '1rem', color: 'white', boxShadow: '0 10px 15px -3px rgba(79,70,229,0.3)' }}>
@@ -771,9 +787,12 @@ export default function CotizacionPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {reportData.clientes.topMonto.length === 0 && <p className="text-gray text-sm">No hay datos</p>}
                     {reportData.clientes.topMonto.map((c: any, i: number) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
                         <span style={{ fontWeight: '500', color: '#334155' }}>{c.nombre || 'Desconocido'}</span>
-                        <span style={{ fontWeight: 'bold', color: '#16a34a' }}>$ {formatCurrency(c.monto).replace('MXN','').replace('USD','').trim()}</span>
+                        <div style={{ textAlign: 'right' }}>
+                          {c.montoMXN > 0 && <div style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '0.85rem' }}>MXN ${formatCurrency(c.montoMXN).replace('MXN','').trim()}</div>}
+                          {c.montoUSD > 0 && <div style={{ fontWeight: 'bold', color: '#0284c7', fontSize: '0.85rem' }}>USD ${formatCurrency(c.montoUSD).replace('USD','').trim()}</div>}
+                        </div>
                       </div>
                     ))}
                   </div>
