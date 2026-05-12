@@ -411,13 +411,27 @@ export default function CotizacionPage() {
   };
 
   const handleSendWhatsApp = () => {
-    const text = `Hola, te comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}. Quedo a tus órdenes.`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    if (!currentCotizacionId) {
+      showError('Por favor guarda la cotización primero para generar un enlace.');
+      return;
+    }
+    const phone = window.prompt('Ingresa el número de WhatsApp del cliente (ej. 521234567890):', '52');
+    if (!phone) return;
+
+    const publicUrl = `${window.location.origin}/cotizacion/ver/${currentCotizacionId}`;
+    const text = `Hola, te comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}.\n\nPuedes verla y descargar el PDF aquí:\n${publicUrl}\n\nQuedo a tus órdenes.`;
+    const cleanPhone = phone.replace(/\D/g, ''); 
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const handleSendEmail = () => {
+    if (!currentCotizacionId) {
+      showError('Por favor guarda la cotización primero para generar un enlace.');
+      return;
+    }
+    const publicUrl = `${window.location.origin}/cotizacion/ver/${currentCotizacionId}`;
     const subject = `Cotización ${folio} - Badilsa`;
-    const body = `Hola,\n\nTe comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}.\n\nQuedo a tus órdenes.\n\nSaludos.`;
+    const body = `Hola,\n\nTe comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}.\n\nPuedes verla y descargar el PDF directamente en el siguiente enlace:\n${publicUrl}\n\nQuedo a tus órdenes.\n\nSaludos.`;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
