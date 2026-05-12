@@ -73,3 +73,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'No se pudo crear la Orden de Compra' }, { status: 500 });
   }
 }
+
+export async function PUT(request: Request) {
+  try {
+    const data = await request.json();
+    const { id, estatus } = data;
+
+    if (!id || !estatus) {
+      return NextResponse.json({ error: 'ID y estatus son requeridos' }, { status: 400 });
+    }
+
+    const updated = await prisma.ordenCompra.update({
+      where: { id },
+      data: { estatus }
+    });
+
+    return NextResponse.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Error updating orden de compra:', error);
+    return NextResponse.json({ error: 'No se pudo actualizar la Orden de Compra' }, { status: 500 });
+  }
+}

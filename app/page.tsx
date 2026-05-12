@@ -287,6 +287,28 @@ export default function CotizacionPage() {
     setActiveTab('ver_orden');
   };
 
+  const updateOrdenStatus = async (id: string, estatus: string) => {
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/ordenes-compra', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, estatus })
+      });
+      if (res.ok) {
+        showMessage('Estatus actualizado.');
+        await fetchOrdenes();
+      } else {
+        const data = await res.json();
+        showError(data.error || 'Error al actualizar estatus.');
+      }
+    } catch {
+      showError('Error de conexion.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const convertirAOrdenCompra = async () => {
     if (!currentCotizacionId) return;
     if (!window.confirm(`¿Convertir la cotización ${folio} en una Orden de Compra?`)) return;
@@ -681,9 +703,18 @@ export default function CotizacionPage() {
                     <div className="text-sm text-gray">Cotización: {oc.cotizacion?.folio || 'N/A'} - {formatDisplayDate(oc.fecha?.split('T')[0] || '')}</div>
                   </div>
                   <div className="history-total" style={{ marginRight: '10px' }}>
-                    <span style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', backgroundColor: '#e0f2fe', color: '#0369a1', marginRight: '1rem' }}>
-                      {oc.estatus}
-                    </span>
+                    <select
+                      value={oc.estatus}
+                      onChange={(e) => updateOrdenStatus(oc.id, e.target.value)}
+                      style={{ fontSize: '0.875rem', padding: '0.25rem', borderRadius: '0.25rem', backgroundColor: '#e0f2fe', color: '#0369a1', marginRight: '1rem', border: '1px solid #bae6fd', cursor: 'pointer', outline: 'none' }}
+                      title="Cambiar estatus de la orden"
+                    >
+                      <option value="PENDIENTE">PENDIENTE</option>
+                      <option value="APROBADA">APROBADA</option>
+                      <option value="EN_PRODUCCION">EN_PRODUCCION</option>
+                      <option value="ENTREGADA">ENTREGADA</option>
+                      <option value="CANCELADA">CANCELADA</option>
+                    </select>
                     {oc.cotizacion?.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${Number(oc.total || 0).toFixed(2)}
                   </div>
                   <div className="history-actions">
