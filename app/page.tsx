@@ -127,7 +127,6 @@ const SimpleDashboard = ({
         </div>
       </div>
     </div>
-    </div>
   );
 };
 
