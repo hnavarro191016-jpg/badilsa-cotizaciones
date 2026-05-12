@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle } from 'lucide-react';
+import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'ordenes' | 'ver_orden';
@@ -71,51 +71,72 @@ const SimpleDashboard = ({
   const maxMonto = Math.max(...montoPorDia.map((d: any) => d.total), 1);
 
   return (
-    <div className="dashboard-container" style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
-      <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a' }}>{title} (Últimos 7 días)</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Total</div>
-          <div style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#0369a1' }}>{total}</div>
+    <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'linear-gradient(to right bottom, #ffffff, #f8fafc)', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
+        <BarChart3 size={24} color="#0284c7" />
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>{title} <span style={{ fontSize: '0.875rem', fontWeight: 'normal', color: '#64748b', marginLeft: '0.5rem' }}>(Últimos 7 días)</span></h3>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', padding: '1.5rem', borderRadius: '1rem', color: 'white', boxShadow: '0 10px 15px -3px rgba(14,165,233,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>Volumen Total</div>
+            <TrendingUp size={20} style={{ opacity: 0.8 }} />
+          </div>
+          <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>{total}</div>
         </div>
-        <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Monto Total</div>
-          <div style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#16a34a' }}>$ {formatCurrency(totalMonto).replace('MXN','').replace('USD','').trim()}</div>
+
+        <div style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '1.5rem', borderRadius: '1rem', color: 'white', boxShadow: '0 10px 15px -3px rgba(16,185,129,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>Ingreso Total</div>
+            <DollarSign size={20} style={{ opacity: 0.8 }} />
+          </div>
+          <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>$ {formatCurrency(totalMonto).replace('MXN','').replace('USD','').trim()}</div>
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
         <div>
-          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#475569' }}>Volumen por Día</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', height: '120px', gap: '4px' }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: '700', marginBottom: '1rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0ea5e9' }}></div>
+            Volumen por Día
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', height: '140px', gap: '8px' }}>
             {porDia.map((d: any, i: number) => {
               const height = (d.cantidad / maxCantidad) * 100;
               return (
                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>{d.cantidad}</div>
-                  <div style={{ width: '100%', backgroundColor: '#0ea5e9', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0' }}></div>
-                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', transform: 'rotate(-45deg)', transformOrigin: 'top left', whiteSpace: 'nowrap' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#0284c7', marginBottom: '4px', opacity: d.cantidad > 0 ? 1 : 0 }}>{d.cantidad}</div>
+                  <div style={{ width: '100%', backgroundColor: '#bae6fd', height: '100%', display: 'flex', alignItems: 'flex-end', borderRadius: '4px' }}>
+                    <div style={{ width: '100%', backgroundColor: '#0ea5e9', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '4px', transition: 'height 0.5s ease' }}></div>
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '8px', fontWeight: '500' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
                 </div>
               );
             })}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#475569' }}>Monto por Día</div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', height: '120px', gap: '4px' }}>
+          <div style={{ fontSize: '0.875rem', fontWeight: '700', marginBottom: '1rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>
+            Monto por Día
+          </div>
+          <div style={{ display: 'flex', alignItems: 'flex-end', height: '140px', gap: '8px' }}>
             {montoPorDia.map((d: any, i: number) => {
               const height = (d.total / maxMonto) * 100;
               return (
                 <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>${(d.total/1000).toFixed(0)}k</div>
-                  <div style={{ width: '100%', backgroundColor: '#22c55e', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0' }}></div>
-                  <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: '4px', transform: 'rotate(-45deg)', transformOrigin: 'top left', whiteSpace: 'nowrap' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
+                  <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: '#059669', marginBottom: '4px', opacity: d.total > 0 ? 1 : 0 }}>${(d.total/1000).toFixed(1)}k</div>
+                  <div style={{ width: '100%', backgroundColor: '#d1fae5', height: '100%', display: 'flex', alignItems: 'flex-end', borderRadius: '4px' }}>
+                    <div style={{ width: '100%', backgroundColor: '#10b981', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '4px', transition: 'height 0.5s ease' }}></div>
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '8px', fontWeight: '500' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
                 </div>
               );
             })}
           </div>
         </div>
       </div>
-      <div style={{ height: '20px' }}></div>
     </div>
   );
 };
