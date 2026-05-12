@@ -1,8 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign } from 'lucide-react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios';
@@ -34,6 +34,8 @@ interface CotizacionData {
   createdAt?: string;
   updatedAt?: string;
   estatus?: string;
+  estatusOC?: string;
+  archivosOC?: any[];
 }
 
 interface UserData {
@@ -145,6 +147,8 @@ export default function CotizacionPage() {
   const [currentUser, setCurrentUser] = useState<UserData | null>(null);
 
   const [currentCotizacionId, setCurrentCotizacionId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingOCFor, setUploadingOCFor] = useState<string | null>(null);
 
   const [folio, setFolio] = useState('');
   const [fecha, setFecha] = useState(todayInputValue());
@@ -253,6 +257,80 @@ export default function CotizacionPage() {
     setCurrentCotizacionId(cotizacion.id || null);
     setActiveTab('cotizacion');
   };
+
+  const handleUploadClick = (cotizacionId: string) => {
+    setUploadingOCFor(cotizacionId);
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadingOCFor) return;
+
+    if (file.type !== 'application/pdf') {
+      showError('Solo se permiten archivos PDF.');
+      return;
+    }
+
+    setIsSaving(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const base64 = event.target?.result;
+      try {
+        const res = await fetch('/api/ordenes-compra/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cotizacionId: uploadingOCFor,
+            nombreArchivo: file.name,
+            fileData: base64
+          })
+        });
+        if (res.ok) {
+          showMessage('Orden de Compra subida con éxito.');
+          await fetchHistorial();
+        } else {
+          showError('Error al subir archivo.');
+        }
+      } catch {
+        showError('Error de red al subir archivo.');
+      } finally {
+        setIsSaving(false);
+        setUploadingOCFor(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const openOC = (base64Data: string) => {
+    const pdfWindow = window.open("");
+    if (pdfWindow) {
+      pdfWindow.document.write(`<iframe width='100%' height='100%' style='border:none;' src='${base64Data}'></iframe>`);
+    }
+  };
+
+  const updateEstatusOC = async (cotizacionId: string, estatusOC: string) => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/ordenes-compra/${cotizacionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estatusOC })
+      });
+      if (res.ok) {
+        showMessage('Estatus OC actualizado.');
+        await fetchHistorial();
+      } else {
+        showError('Error al actualizar estatus OC.');
+      }
+    } catch {
+      showError('Error de red.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
 
 
   const saveCotizacion = async () => {
@@ -518,22 +596,57 @@ export default function CotizacionPage() {
               historial.map((cotizacion) => (
                 <div className="history-row" key={cotizacion.folio}>
                   <div>
-                    <div className="font-bold">{cotizacion.folio}</div>
+                    <div className="font-bold" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {cotizacion.folio}
+                      <select
+                        value={cotizacion.estatusOC || 'PENDIENTE'}
+                        onChange={(e) => updateEstatusOC(cotizacion.id!, e.target.value)}
+                        style={{ fontSize: '0.75rem', padding: '2px 4px', borderRadius: '4px', border: '1px solid #cbd5e1', cursor: 'pointer', outline: 'none' }}
+                        title="Estatus de Orden de Compra"
+                      >
+                        <option value="PENDIENTE">🟡 Pendiente OC</option>
+                        <option value="RECIBIDA">🟢 OC Recibida</option>
+                        <option value="VALIDADA">🔵 OC Validada</option>
+                      </select>
+                    </div>
                     <div className="text-sm text-gray">{cotizacion.empresa} - {formatDisplayDate(cotizacion.fecha)}</div>
                   </div>
                   <div className="history-total">{cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${Number(cotizacion.total || 0).toFixed(2)}</div>
-                  <div className="history-actions">
-                    <button className="btn btn-outline" onClick={() => loadCotizacion(cotizacion)}>
-                      <Edit size={16} /> Modificar
-                    </button>
-                    <button className="btn btn-outline danger-outline" onClick={() => deleteCotizacion(cotizacion)}>
-                      <Trash2 size={16} /> Eliminar
-                    </button>
+                  <div className="history-actions" style={{ flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button className="btn btn-outline" style={{ padding: '4px 8px' }} onClick={() => loadCotizacion(cotizacion)}>
+                        <Edit size={16} /> Modificar
+                      </button>
+                      <button className="btn btn-outline danger-outline" style={{ padding: '4px 8px' }} onClick={() => deleteCotizacion(cotizacion)}>
+                        <Trash2 size={16} /> Eliminar
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#2563eb', borderColor: '#2563eb' }} onClick={() => window.open(`/cotizacion/ver/${cotizacion.id}`, '_blank')}>
+                        <FileText size={16} /> Ver PDF
+                      </button>
+                      {cotizacion.archivosOC && cotizacion.archivosOC.length > 0 ? (
+                        <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#16a34a', borderColor: '#16a34a' }} onClick={() => openOC(cotizacion.archivosOC![0].fileData)}>
+                          <FileText size={16} /> Ver OC
+                        </button>
+                      ) : (
+                        <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#0ea5e9', borderColor: '#0ea5e9' }} onClick={() => handleUploadClick(cotizacion.id!)}>
+                          <Upload size={16} /> Subir OC
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
             )}
           </div>
+          <input
+            type="file"
+            accept="application/pdf"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+          />
         </section>
       )}
 

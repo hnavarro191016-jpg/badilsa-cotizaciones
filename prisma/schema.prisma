@@ -29,9 +29,11 @@ model Cotizacion {
   iva           Float
   total         Float
   estatus       String   @default("BORRADOR") // BORRADOR, ENVIADA, ACEPTADA, RECHAZADA
+  estatusOC     String   @default("PENDIENTE") // PENDIENTE, RECIBIDA, VALIDADA
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   items         ItemCotizacion[]
+  archivosOC    OrdenCompraArchivo[]
 }
 
 model ItemCotizacion {
@@ -43,4 +45,14 @@ model ItemCotizacion {
   precioUnitario Float
   valorDolar     Float      @default(1)
   cotizacion     Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+}
+
+model OrdenCompraArchivo {
+  id            String     @id @default(cuid())
+  cotizacionId  String
+  nombreArchivo String
+  fileData      String     // Base64 del PDF
+  fechaSubida   DateTime   @default(now())
+  
+  cotizacion    Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
 }
