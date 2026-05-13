@@ -52,91 +52,51 @@ const formatNumber = (value: number) => new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 }).format(value || 0);
 
-const SimpleDashboard = ({ 
-  title, 
-  total, 
-  totalMontoMXN, 
-  totalMontoUSD, 
-  porDia, 
-  montoPorDia 
-}: any) => {
-  if (!porDia || !montoPorDia) return null;
-  const maxCantidad = Math.max(...porDia.map((d: any) => d.cantidad), 1);
-  const maxMonto = Math.max(...montoPorDia.map((d: any) => Math.max(d.totalMXN || 0, d.totalUSD || 0)), 1);
+const HistorialDashboard = ({ historial }: { historial: any[] }) => {
+  if (!historial || historial.length === 0) return null;
+
+  const total = historial.length;
+  const totalMXN = historial.filter(c => c.moneda === 'PESOS' || c.moneda === 'MXN').reduce((sum, c) => sum + (Number(c.total) || 0), 0);
+  const totalUSD = historial.filter(c => c.moneda === 'DOLARES' || c.moneda === 'USD').reduce((sum, c) => sum + (Number(c.total) || 0), 0);
+
+  const countMXN = historial.filter(c => c.moneda === 'PESOS' || c.moneda === 'MXN').length;
+  const countUSD = historial.filter(c => c.moneda === 'DOLARES' || c.moneda === 'USD').length;
+
+  const promedioMXN = countMXN > 0 ? totalMXN / countMXN : 0;
+  const promedioUSD = countUSD > 0 ? totalUSD / countUSD : 0;
+
+  const conOC = historial.filter(c => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').length;
+  const conversion = total > 0 ? ((conOC / total) * 100).toFixed(1) : '0.0';
 
   return (
-    <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'linear-gradient(to right bottom, #ffffff, #f8fafc)', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
+    <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'white', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
         <BarChart3 size={24} color="#0284c7" />
-        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>{title} <span style={{ fontSize: '0.875rem', fontWeight: 'normal', color: '#64748b', marginLeft: '0.5rem' }}>(Últimos 7 días)</span></h3>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Resumen General del Historial</h3>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-        <div style={{ background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', padding: '1.5rem', borderRadius: '1rem', color: 'white', boxShadow: '0 10px 15px -3px rgba(14,165,233,0.3)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <div style={{ fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>Volumen Total</div>
-            <TrendingUp size={20} style={{ opacity: 0.8 }} />
-          </div>
-          <div style={{ fontSize: '2.5rem', fontWeight: '800', lineHeight: 1 }}>{total}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+        <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '0.75rem', border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Cotizaciones Generadas</div>
+          <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0f172a', marginTop: '0.25rem' }}>{total}</div>
         </div>
 
-        <div style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', padding: '1.5rem', borderRadius: '1rem', color: 'white', boxShadow: '0 10px 15px -3px rgba(16,185,129,0.3)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <div style={{ fontSize: '0.875rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>Ingreso Total</div>
-            <DollarSign size={20} style={{ opacity: 0.8 }} />
-          </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: '800', lineHeight: 1.2 }}>
-            <span style={{ fontSize: '1rem', opacity: 0.9 }}>MXN </span>${formatNumber(totalMontoMXN)}<br/>
-            <span style={{ fontSize: '1rem', opacity: 0.9 }}>USD </span>${formatNumber(totalMontoUSD)}
-          </div>
+        <div style={{ padding: '1rem', background: '#f0fdf4', borderRadius: '0.75rem', border: '1px solid #bbf7d0' }}>
+          <div style={{ fontSize: '0.85rem', color: '#16a34a', fontWeight: 'bold', textTransform: 'uppercase' }}>Ingreso Total Estimado (MXN)</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#15803d', marginTop: '0.25rem' }}>${formatNumber(totalMXN)}</div>
+          <div style={{ fontSize: '0.75rem', color: '#16a34a', marginTop: '0.25rem' }}>Ticket Promedio: ${formatNumber(promedioMXN)}</div>
         </div>
-      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '3rem' }}>
-        <div>
-          <div style={{ fontSize: '0.875rem', fontWeight: '700', marginBottom: '1rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0ea5e9' }}></div>
-            Volumen por Día
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', height: '140px', gap: '8px' }}>
-            {porDia.map((d: any, i: number) => {
-              const height = (d.cantidad / maxCantidad) * 100;
-              return (
-                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#0284c7', marginBottom: '4px', opacity: d.cantidad > 0 ? 1 : 0 }}>{d.cantidad}</div>
-                  <div style={{ width: '100%', backgroundColor: '#bae6fd', height: '100%', display: 'flex', alignItems: 'flex-end', borderRadius: '4px' }}>
-                    <div style={{ width: '100%', backgroundColor: '#0ea5e9', height: `${height}%`, minHeight: height > 0 ? '4px' : '0', borderRadius: '4px', transition: 'height 0.5s ease' }}></div>
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '8px', fontWeight: '500' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
-                </div>
-              );
-            })}
-          </div>
+        <div style={{ padding: '1rem', background: '#f0f9ff', borderRadius: '0.75rem', border: '1px solid #bae6fd' }}>
+          <div style={{ fontSize: '0.85rem', color: '#0284c7', fontWeight: 'bold', textTransform: 'uppercase' }}>Ingreso Total Estimado (USD)</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#0369a1', marginTop: '0.25rem' }}>${formatNumber(totalUSD)}</div>
+          <div style={{ fontSize: '0.75rem', color: '#0284c7', marginTop: '0.25rem' }}>Ticket Promedio: ${formatNumber(promedioUSD)}</div>
         </div>
-        <div>
-          <div style={{ fontSize: '0.875rem', fontWeight: '700', marginBottom: '1rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>
-            Monto por Día
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', height: '140px', gap: '8px' }}>
-            {montoPorDia.map((d: any, i: number) => {
-              const heightMXN = maxMonto > 0 ? (d.totalMXN / maxMonto) * 100 : 0;
-              const heightUSD = maxMonto > 0 ? (d.totalUSD / maxMonto) * 100 : 0;
-              return (
-                <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.65rem', fontWeight: 'bold', color: '#059669', marginBottom: '2px', opacity: d.totalMXN > 0 || d.totalUSD > 0 ? 1 : 0, textAlign: 'center' }}>
-                    {d.totalMXN > 0 && <div>MXN ${(d.totalMXN/1000).toFixed(1)}k</div>}
-                    {d.totalUSD > 0 && <div style={{color: '#0f766e'}}>USD ${(d.totalUSD/1000).toFixed(1)}k</div>}
-                  </div>
-                  <div style={{ width: '100%', backgroundColor: '#d1fae5', height: '100%', display: 'flex', alignItems: 'flex-end', borderRadius: '4px', gap: '2px' }}>
-                    <div style={{ flex: 1, backgroundColor: '#10b981', height: `${heightMXN}%`, minHeight: heightMXN > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0', transition: 'height 0.5s ease' }} title={`MXN ${d.totalMXN}`}></div>
-                    <div style={{ flex: 1, backgroundColor: '#0f766e', height: `${heightUSD}%`, minHeight: heightUSD > 0 ? '4px' : '0', borderRadius: '2px 2px 0 0', transition: 'height 0.5s ease' }} title={`USD ${d.totalUSD}`}></div>
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '8px', fontWeight: '500' }}>{d.fecha.split('-')[2]}/{d.fecha.split('-')[1]}</div>
-                </div>
-              );
-            })}
-          </div>
+
+        <div style={{ padding: '1rem', background: '#eef2ff', borderRadius: '0.75rem', border: '1px solid #c7d2fe' }}>
+          <div style={{ fontSize: '0.85rem', color: '#4f46e5', fontWeight: 'bold', textTransform: 'uppercase' }}>Tasa de Conversión a OC</div>
+          <div style={{ fontSize: '2rem', fontWeight: '800', color: '#4338ca', marginTop: '0.25rem' }}>{conversion}%</div>
+          <div style={{ fontSize: '0.75rem', color: '#4f46e5', marginTop: '0.25rem' }}>{conOC} cotizaciones con Orden de Compra</div>
         </div>
       </div>
     </div>
@@ -145,8 +105,7 @@ const SimpleDashboard = ({
 
 const EstatusOCDashboard = ({ historial }: { historial: any[] }) => {
   const pendientes = historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE');
-  const recibidas = historial.filter((c) => c.estatusOC === 'RECIBIDA');
-  const validadas = historial.filter((c) => c.estatusOC === 'VALIDADA');
+  const recibidas = historial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA'); // Incluimos VALIDADA por compatibilidad con historico
 
   return (
     <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'linear-gradient(to right bottom, #ffffff, #f8fafc)', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
@@ -165,16 +124,9 @@ const EstatusOCDashboard = ({ historial }: { historial: any[] }) => {
 
         {/* RECIBIDA */}
         <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #16a34a', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#16a34a', textTransform: 'uppercase', marginBottom: '0.5rem' }}>🟢 Falta Validar (Recibida)</div>
+          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#16a34a', textTransform: 'uppercase', marginBottom: '0.5rem' }}>🟢 OC Recibida (Completada)</div>
           <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#334155', lineHeight: 1 }}>{recibidas.length}</div>
-          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem', lineHeight: 1.4 }}>Tienen PDF cargado, puedes revisarlo y validarlo.</p>
-        </div>
-
-        {/* VALIDADA */}
-        <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #2563eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-          <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#2563eb', textTransform: 'uppercase', marginBottom: '0.5rem' }}>🔵 Proceso Completado</div>
-          <div style={{ fontSize: '2.5rem', fontWeight: '800', color: '#334155', lineHeight: 1 }}>{validadas.length}</div>
-          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem', lineHeight: 1.4 }}>Órdenes validadas correctamente.</p>
+          <p style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.5rem', lineHeight: 1.4 }}>Cotizaciones cerradas y con orden de compra.</p>
         </div>
       </div>
     </div>
@@ -212,7 +164,6 @@ export default function CotizacionPage() {
 
   const [historial, setHistorial] = useState<CotizacionData[]>([]);
   const [users, setUsers] = useState<UserData[]>([]);
-  const [dashCotizaciones, setDashCotizaciones] = useState<any>(null);
   const [reportData, setReportData] = useState<any>(null);
   const [reportFilters, setReportFilters] = useState({ fechaInicio: '', fechaFin: '', empresa: '' });
   const [newUsername, setNewUsername] = useState('');
@@ -233,7 +184,6 @@ export default function CotizacionPage() {
   useEffect(() => {
     fetchCurrentUser();
     fetchHistorial();
-    fetchDashboards();
   }, []);
 
   useEffect(() => {
@@ -281,11 +231,6 @@ export default function CotizacionPage() {
   const fetchHistorial = async () => {
     const res = await fetch('/api/cotizaciones');
     if (res.ok) setHistorial(await res.json());
-  };
-
-  const fetchDashboards = async () => {
-    const resCot = await fetch('/api/dashboard/cotizaciones-semanal');
-    if (resCot.ok) setDashCotizaciones(await resCot.json());
   };
 
   const fetchUsers = async () => {
@@ -641,23 +586,14 @@ export default function CotizacionPage() {
 
       {activeTab === 'historial' && (
         <section className="panel-page no-print">
-          {dashCotizaciones && (
-            <SimpleDashboard 
-              title="Dashboard Cotizaciones" 
-              total={dashCotizaciones.total_cotizaciones_semana} 
-              totalMontoMXN={dashCotizaciones.total_monto_semana_mxn} 
-              totalMontoUSD={dashCotizaciones.total_monto_semana_usd} 
-              porDia={dashCotizaciones.cotizaciones_por_dia} 
-              montoPorDia={dashCotizaciones.monto_por_dia}
-            />
-          )}
+          <HistorialDashboard historial={historial} />
 
           <EstatusOCDashboard historial={historial} />
 
           <div className="panel-header">
             <div>
-              <h2>Historial de Cotizaciones</h2>
-              <p>{historial.length} cotizaciones guardadas</p>
+              <h2>Cotizaciones Pendientes</h2>
+              <p>{historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').length} cotizaciones en espera de OC</p>
             </div>
             <button className="btn btn-primary" onClick={startNewCotizacion}>
               <Plus size={18} /> Nueva Cotizacion
@@ -665,10 +601,10 @@ export default function CotizacionPage() {
           </div>
 
           <div className="history-table">
-            {historial.length === 0 ? (
-              <div className="empty-state">No hay cotizaciones guardadas.</div>
+            {historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').length === 0 ? (
+              <div className="empty-state">No hay cotizaciones pendientes.</div>
             ) : (
-              historial.map((cotizacion) => (
+              historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').map((cotizacion) => (
                 <div className="history-row" key={cotizacion.folio}>
                   <div>
                     <div className="font-bold" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -681,7 +617,64 @@ export default function CotizacionPage() {
                       >
                         <option value="PENDIENTE">🟡 Pendiente OC</option>
                         <option value="RECIBIDA">🟢 OC Recibida</option>
-                        <option value="VALIDADA">🔵 OC Validada</option>
+                      </select>
+                    </div>
+                    <div className="text-sm text-gray">{cotizacion.empresa} - {formatDisplayDate(cotizacion.fecha)}</div>
+                  </div>
+                  <div className="history-total">{cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${formatNumber(cotizacion.total || 0)}</div>
+                  <div className="history-actions" style={{ flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button className="btn btn-outline" style={{ padding: '4px 8px' }} onClick={() => loadCotizacion(cotizacion)}>
+                        <Edit size={16} /> Modificar
+                      </button>
+                      <button className="btn btn-outline danger-outline" style={{ padding: '4px 8px' }} onClick={() => deleteCotizacion(cotizacion)}>
+                        <Trash2 size={16} /> Eliminar
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#2563eb', borderColor: '#2563eb' }} onClick={() => window.open(`/cotizacion/ver/${cotizacion.id}`, '_blank')}>
+                        <FileText size={16} /> Ver PDF
+                      </button>
+                      {cotizacion.archivosOC && cotizacion.archivosOC.length > 0 ? (
+                        <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#16a34a', borderColor: '#16a34a' }} onClick={() => openOC(cotizacion.archivosOC![0].fileData)}>
+                          <FileText size={16} /> Ver OC
+                        </button>
+                      ) : (
+                        <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#0ea5e9', borderColor: '#0ea5e9' }} onClick={() => handleUploadClick(cotizacion.id!)}>
+                          <Upload size={16} /> Subir OC
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="panel-header" style={{ marginTop: '2rem' }}>
+            <div>
+              <h2>Cotizaciones Completadas</h2>
+              <p>{historial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').length} cotizaciones con OC recibida</p>
+            </div>
+          </div>
+
+          <div className="history-table">
+            {historial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').length === 0 ? (
+              <div className="empty-state">No hay cotizaciones completadas.</div>
+            ) : (
+              historial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').map((cotizacion) => (
+                <div className="history-row" key={cotizacion.folio}>
+                  <div>
+                    <div className="font-bold" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {cotizacion.folio}
+                      <select
+                        value={cotizacion.estatusOC === 'VALIDADA' ? 'RECIBIDA' : cotizacion.estatusOC}
+                        onChange={(e) => updateEstatusOC(cotizacion.id!, e.target.value)}
+                        style={{ fontSize: '0.75rem', padding: '2px 4px', borderRadius: '4px', border: '1px solid #16a34a', cursor: 'pointer', outline: 'none', color: '#16a34a', fontWeight: 'bold' }}
+                        title="Estatus de Orden de Compra"
+                      >
+                        <option value="PENDIENTE">🟡 Pendiente OC</option>
+                        <option value="RECIBIDA">🟢 OC Recibida</option>
                       </select>
                     </div>
                     <div className="text-sm text-gray">{cotizacion.empresa} - {formatDisplayDate(cotizacion.fecha)}</div>
