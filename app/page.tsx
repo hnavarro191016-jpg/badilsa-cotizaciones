@@ -47,14 +47,18 @@ interface UserData {
 
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
 
+const formatNumber = (value: number) => new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+}).format(value || 0);
+
 const SimpleDashboard = ({ 
   title, 
   total, 
   totalMontoMXN, 
   totalMontoUSD, 
   porDia, 
-  montoPorDia, 
-  formatCurrency 
+  montoPorDia 
 }: any) => {
   if (!porDia || !montoPorDia) return null;
   const maxCantidad = Math.max(...porDia.map((d: any) => d.cantidad), 1);
@@ -82,8 +86,8 @@ const SimpleDashboard = ({
             <DollarSign size={20} style={{ opacity: 0.8 }} />
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: '800', lineHeight: 1.2 }}>
-            <span style={{ fontSize: '1rem', opacity: 0.9 }}>MXN </span>${formatCurrency(totalMontoMXN).replace('MXN','').replace('USD','').trim()}<br/>
-            <span style={{ fontSize: '1rem', opacity: 0.9 }}>USD </span>${formatCurrency(totalMontoUSD).replace('MXN','').replace('USD','').trim()}
+            <span style={{ fontSize: '1rem', opacity: 0.9 }}>MXN </span>${formatNumber(totalMontoMXN)}<br/>
+            <span style={{ fontSize: '1rem', opacity: 0.9 }}>USD </span>${formatNumber(totalMontoUSD)}
           </div>
         </div>
       </div>
@@ -524,7 +528,7 @@ export default function CotizacionPage() {
       return;
     }
     const publicUrl = `${window.location.origin}/cotizacion/ver/${currentCotizacionId}`;
-    const text = `Hola, te comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}.\n\nPuedes verla y descargar el PDF aquí:\n${publicUrl}\n\nQuedo a tus órdenes.`;
+    const text = `Hola, te comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${formatNumber(total)}.\n\nPuedes verla y descargar el PDF aquí:\n${publicUrl}\n\nQuedo a tus órdenes.`;
     
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -536,7 +540,7 @@ export default function CotizacionPage() {
     }
     const publicUrl = `${window.location.origin}/cotizacion/ver/${currentCotizacionId}`;
     const subject = `Cotización ${folio} - Badilsa`;
-    const body = `Hola,\n\nTe comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${Number(total || 0).toFixed(2)}.\n\nPuedes verla y descargar el PDF directamente en el siguiente enlace:\n${publicUrl}\n\nQuedo a tus órdenes.\n\nSaludos.`;
+    const body = `Hola,\n\nTe comparto la cotización ${folio} por un total de ${moneda === 'DOLARES' ? 'USD' : 'MXN'} $${formatNumber(total)}.\n\nPuedes verla y descargar el PDF directamente en el siguiente enlace:\n${publicUrl}\n\nQuedo a tus órdenes.\n\nSaludos.`;
     window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
@@ -546,11 +550,6 @@ export default function CotizacionPage() {
     window.print();
     setTimeout(() => { document.title = originalTitle; }, 100);
   };
-
-  const formatCurrency = (value: number) => new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: moneda === 'DOLARES' ? 'USD' : 'MXN',
-  }).format(value);
 
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return '';
@@ -650,7 +649,6 @@ export default function CotizacionPage() {
               totalMontoUSD={dashCotizaciones.total_monto_semana_usd} 
               porDia={dashCotizaciones.cotizaciones_por_dia} 
               montoPorDia={dashCotizaciones.monto_por_dia}
-              formatCurrency={formatCurrency}
             />
           )}
 
@@ -688,7 +686,7 @@ export default function CotizacionPage() {
                     </div>
                     <div className="text-sm text-gray">{cotizacion.empresa} - {formatDisplayDate(cotizacion.fecha)}</div>
                   </div>
-                  <div className="history-total">{cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${Number(cotizacion.total || 0).toFixed(2)}</div>
+                  <div className="history-total">{cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${formatNumber(cotizacion.total || 0)}</div>
                   <div className="history-actions" style={{ flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button className="btn btn-outline" style={{ padding: '4px 8px' }} onClick={() => loadCotizacion(cotizacion)}>
@@ -756,8 +754,8 @@ export default function CotizacionPage() {
                   <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Total Cotizaciones</div>
                   <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0f172a' }}>{reportData.resumen.totalCotizaciones}</div>
                   <div style={{ fontSize: '0.875rem', color: '#16a34a', marginTop: '0.5rem', fontWeight: '500' }}>
-                    MXN: ${formatCurrency(reportData.resumen.montoTotalCotizadoMXN).replace('MXN','').trim()} <br/>
-                    USD: ${formatCurrency(reportData.resumen.montoTotalCotizadoUSD).replace('USD','').trim()}
+                    MXN: ${formatNumber(reportData.resumen.montoTotalCotizadoMXN)} <br/>
+                    USD: ${formatNumber(reportData.resumen.montoTotalCotizadoUSD)}
                   </div>
                 </div>
                 
@@ -765,8 +763,8 @@ export default function CotizacionPage() {
                   <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Órdenes de Compra</div>
                   <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0369a1' }}>{reportData.resumen.totalOrdenes}</div>
                   <div style={{ fontSize: '0.875rem', color: '#0369a1', marginTop: '0.5rem', fontWeight: '500' }}>
-                    MXN: ${formatCurrency(reportData.resumen.montoTotalOrdenesMXN).replace('MXN','').trim()} <br/>
-                    USD: ${formatCurrency(reportData.resumen.montoTotalOrdenesUSD).replace('USD','').trim()}
+                    MXN: ${formatNumber(reportData.resumen.montoTotalOrdenesMXN)} <br/>
+                    USD: ${formatNumber(reportData.resumen.montoTotalOrdenesUSD)}
                   </div>
                 </div>
 
@@ -790,8 +788,8 @@ export default function CotizacionPage() {
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
                         <span style={{ fontWeight: '500', color: '#334155' }}>{c.nombre || 'Desconocido'}</span>
                         <div style={{ textAlign: 'right' }}>
-                          {c.montoMXN > 0 && <div style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '0.85rem' }}>MXN ${formatCurrency(c.montoMXN).replace('MXN','').trim()}</div>}
-                          {c.montoUSD > 0 && <div style={{ fontWeight: 'bold', color: '#0284c7', fontSize: '0.85rem' }}>USD ${formatCurrency(c.montoUSD).replace('USD','').trim()}</div>}
+                          {c.montoMXN > 0 && <div style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '0.85rem' }}>MXN ${formatNumber(c.montoMXN)}</div>}
+                          {c.montoUSD > 0 && <div style={{ fontWeight: 'bold', color: '#0284c7', fontSize: '0.85rem' }}>USD ${formatNumber(c.montoUSD)}</div>}
                         </div>
                       </div>
                     ))}
@@ -970,10 +968,10 @@ export default function CotizacionPage() {
                         <>
                           <span className="currency-prefix no-print">$</span>
                           <input type="number" className="inline-input text-right no-print" value={item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', parseFloat(e.target.value) || 0)} style={{ width: '70px' }} />
-                          <span className="print-only">$ {item.precioUnitario.toFixed(2)}</span>
+                          <span className="print-only">$ {formatNumber(item.precioUnitario)}</span>
                         </>
                       ) : (
-                        <span>$ {item.precioUnitario.toFixed(2)}</span>
+                        <span>$ {formatNumber(item.precioUnitario)}</span>
                       )}
                     </td>
                     <td className="no-print text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
@@ -984,7 +982,7 @@ export default function CotizacionPage() {
                       )}
                     </td>
                     <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                      $ {formatCurrency(item.cantidad * item.precioUnitario * (item.valorDolar || 1)).replace('$', '').replace('MXN', '').replace('USD', '').trim()}
+                      $ {formatNumber(item.cantidad * item.precioUnitario * (item.valorDolar || 1))}
                     </td>
                     <td className="no-print text-center" style={{ verticalAlign: 'top', paddingTop: '0.25rem' }}>
                       <button className="btn btn-outline" style={{ padding: '0.3rem', marginRight: '0.25rem', borderColor: 'transparent', minWidth: 'auto' }} onClick={() => toggleEditItem(item.id)} title={item.isEditing ? "Guardar Concepto" : "Modificar Concepto"}>
@@ -1018,15 +1016,15 @@ export default function CotizacionPage() {
             <div className="totals-block">
               <div className="total-row">
                 <span className="total-label blue-bg">Sub-Total</span>
-                <span className="total-value">$ {formatCurrency(subTotal).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+                <span className="total-value">$ {formatNumber(subTotal)}</span>
               </div>
               <div className="total-row">
                 <span className="total-label"></span>
-                <span className="total-value">$ {formatCurrency(iva).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+                <span className="total-value">$ {formatNumber(iva)}</span>
               </div>
               <div className="total-row">
                 <span className="total-label blue-bg">Total</span>
-                <span className="total-value font-bold">$ {formatCurrency(total).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+                <span className="total-value font-bold">$ {formatNumber(total)}</span>
               </div>
             </div>
           </div>
