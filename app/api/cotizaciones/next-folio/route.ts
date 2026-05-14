@@ -19,7 +19,11 @@ export async function GET() {
       if (!Number.isNaN(num) && num > maxNum) maxNum = num;
     }
 
-    const folio = `BMA${String(maxNum + 1).padStart(5, '0')}`;
+    const today = new Date();
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const year = today.getFullYear();
+    const folio = `BMA${String(maxNum + 1).padStart(4, '0')}-${day}${month}${year}`;
 
     return NextResponse.json({ folio });
   } catch (error) {
