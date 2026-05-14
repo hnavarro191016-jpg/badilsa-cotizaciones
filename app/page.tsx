@@ -880,14 +880,20 @@ export default function CotizacionPage() {
           </div>
 
           <div className="doc-meta-blocks">
+            <datalist id="atenciones-list">
+              {Array.from(new Set(historial.map(c => c.atencion).filter(Boolean))).map((atn, i) => <option key={i} value={atn} />)}
+            </datalist>
+            <datalist id="empresas-list">
+              {Array.from(new Set(historial.map(c => c.empresa).filter(Boolean))).map((emp, i) => <option key={i} value={emp} />)}
+            </datalist>
             <div className="meta-block attention-block">
               <div className="flex items-center gap-2">
                 <span style={{ width: '65px' }}>Atencion:</span>
-                <input className="inline-input" value={atencion} onChange={(e) => setAtencion(e.target.value)} />
+                <input className="inline-input" value={atencion} onChange={(e) => setAtencion(e.target.value)} list="atenciones-list" />
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span style={{ width: '65px' }}>Empresa:</span>
-                <input className="inline-input" value={empresa} onChange={(e) => setEmpresa(e.target.value)} />
+                <input className="inline-input" value={empresa} onChange={(e) => setEmpresa(e.target.value)} list="empresas-list" />
               </div>
             </div>
             <div className="meta-block date-block">
