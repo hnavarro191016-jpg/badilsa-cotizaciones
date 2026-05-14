@@ -140,7 +140,7 @@ const emptyItem = (): Item => ({
   unidad: 'pzas',
   descripcion: '',
   precioUnitario: 0,
-  valorDolar: 1,
+  valorDolar: 0,
   isEditing: true,
 });
 
@@ -277,7 +277,7 @@ export default function CotizacionPage() {
     setObservaciones(cotizacion.observaciones);
     setPropuesta(cotizacion.propuesta || '');
     setTiempoEntrega(cotizacion.tiempoEntrega);
-    setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar || 1, isEditing: false })));
+    setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar === 1 ? 0 : (item.valorDolar || 0), isEditing: false })));
     setCurrentCotizacionId(cotizacion.id || null);
     setActiveTab('cotizacion');
   };
