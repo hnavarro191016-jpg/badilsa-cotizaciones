@@ -177,7 +177,7 @@ export default function CotizacionPage() {
   const [error, setError] = useState('');
 
   const subTotal = useMemo(
-    () => items.reduce((acc, item) => acc + item.cantidad * item.precioUnitario * (item.valorDolar || 1), 0),
+    () => items.reduce((acc, item) => acc + item.cantidad * item.precioUnitario / (item.valorDolar || 1), 0),
     [items]
   );
   const iva = subTotal * 0.16;
@@ -994,7 +994,7 @@ export default function CotizacionPage() {
                       )}
                     </td>
                     <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                      $ {formatNumber(item.cantidad * item.precioUnitario * (item.valorDolar || 1))}
+                      $ {formatNumber(item.cantidad * item.precioUnitario / (item.valorDolar || 1))}
                     </td>
                     <td className="no-print text-center" style={{ verticalAlign: 'top', paddingTop: '0.25rem' }}>
                       <button className="btn btn-outline" style={{ padding: '0.3rem', marginRight: '0.25rem', borderColor: 'transparent', minWidth: 'auto' }} onClick={() => toggleEditItem(item.id)} title={item.isEditing ? "Guardar Concepto" : "Modificar Concepto"}>

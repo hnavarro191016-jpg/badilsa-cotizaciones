@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       valorDolar: Number(item.valorDolar) || 1,
     }));
 
-    const subTotal = cleanItems.reduce((acc, item) => acc + item.cantidad * item.precioUnitario * item.valorDolar, 0);
+    const subTotal = cleanItems.reduce((acc, item) => acc + item.cantidad * item.precioUnitario / (item.valorDolar || 1), 0);
     const iva = subTotal * 0.16;
     const total = subTotal + iva;
 

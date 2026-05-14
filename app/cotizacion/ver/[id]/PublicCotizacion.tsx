@@ -107,7 +107,7 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
                     $ {item.precioUnitario.toFixed(2)}
                   </td>
                   <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                    $ {formatNumber(item.cantidad * item.precioUnitario * (item.valorDolar || 1))}
+                    $ {formatNumber(item.cantidad * item.precioUnitario / (item.valorDolar || 1))}
                   </td>
                 </tr>
               ))}
