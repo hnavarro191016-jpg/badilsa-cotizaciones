@@ -43,6 +43,9 @@ interface UserData {
   id: string;
   username: string;
   role: 'ADMIN' | 'USER';
+  nombre?: string | null;
+  apellido?: string | null;
+  telefono?: string | null;
   createdAt?: string;
 }
 
@@ -171,6 +174,10 @@ export default function CotizacionPage() {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newRole, setNewRole] = useState<'ADMIN' | 'USER'>('USER');
+  const [newNombre, setNewNombre] = useState('');
+  const [newApellido, setNewApellido] = useState('');
+  const [newTelefono, setNewTelefono] = useState('');
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -256,7 +263,7 @@ export default function CotizacionPage() {
     setMode('new');
     setFolio(nextFolio);
     setFecha(todayInputValue());
-    setAtencion('');
+    setAtencion([currentUser?.nombre, currentUser?.apellido].filter(Boolean).join(' '));
     setEmpresa('');
     setMoneda('DOLARES');
     setObservaciones('');
@@ -430,25 +437,52 @@ export default function CotizacionPage() {
     )));
   };
 
-  const createUser = async (event: React.FormEvent) => {
+  const createOrUpdateUser = async (event: React.FormEvent) => {
     event.preventDefault();
+    const isEditing = !!editingUserId;
     const res = await fetch('/api/users', {
-      method: 'POST',
+      method: isEditing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: newUsername, password: newPassword, role: newRole }),
+      body: JSON.stringify({
+        id: editingUserId,
+        username: newUsername,
+        password: newPassword,
+        role: newRole,
+        nombre: newNombre,
+        apellido: newApellido,
+        telefono: newTelefono
+      }),
     });
     const data = await res.json();
 
     if (!res.ok) {
-      showError(data.error || 'No se pudo crear el usuario.');
+      showError(data.error || (isEditing ? 'No se pudo actualizar el usuario.' : 'No se pudo crear el usuario.'));
       return;
     }
 
+    cancelEditUser();
+    await fetchUsers();
+    showMessage(isEditing ? 'Usuario actualizado.' : 'Usuario creado.');
+  };
+
+  const handleEditUser = (user: UserData) => {
+    setEditingUserId(user.id);
+    setNewUsername(user.username);
+    setNewPassword('');
+    setNewRole(user.role);
+    setNewNombre(user.nombre || '');
+    setNewApellido(user.apellido || '');
+    setNewTelefono(user.telefono || '');
+  };
+
+  const cancelEditUser = () => {
+    setEditingUserId(null);
     setNewUsername('');
     setNewPassword('');
     setNewRole('USER');
-    await fetchUsers();
-    showMessage('Usuario creado.');
+    setNewNombre('');
+    setNewApellido('');
+    setNewTelefono('');
   };
 
   const deleteUser = async (user: UserData) => {
@@ -816,20 +850,30 @@ export default function CotizacionPage() {
           <div className="panel-header">
             <div>
               <h2>Usuarios</h2>
-              <p>Solo administradores pueden crear o eliminar usuarios.</p>
+              <p>Solo administradores pueden gestionar usuarios.</p>
             </div>
           </div>
 
-          <form className="user-form" onSubmit={createUser}>
-            <input value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="Usuario" required />
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Contrasena" required />
-            <select value={newRole} onChange={(e) => setNewRole(e.target.value as 'ADMIN' | 'USER')}>
+          <form className="user-form" onSubmit={createOrUpdateUser} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1.5rem', marginBottom: '2rem' }}>
+            <input className="inline-input" value={newUsername} onChange={(e) => setNewUsername(e.target.value)} placeholder="Usuario" required />
+            <input className="inline-input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder={editingUserId ? "Dejar en blanco para no cambiar contraseña" : "Contrasena"} required={!editingUserId} />
+            <input className="inline-input" value={newNombre} onChange={(e) => setNewNombre(e.target.value)} placeholder="Nombre" />
+            <input className="inline-input" value={newApellido} onChange={(e) => setNewApellido(e.target.value)} placeholder="Apellido" />
+            <input className="inline-input" value={newTelefono} onChange={(e) => setNewTelefono(e.target.value)} placeholder="Telefono" />
+            <select className="inline-input" value={newRole} onChange={(e) => setNewRole(e.target.value as 'ADMIN' | 'USER')}>
               <option value="USER">Cotizador</option>
               <option value="ADMIN">Administrador</option>
             </select>
-            <button className="btn btn-primary" type="submit">
-              <UserPlus size={18} /> Crear Usuario
-            </button>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              {editingUserId && (
+                <button type="button" className="btn btn-outline" onClick={cancelEditUser}>
+                  Cancelar
+                </button>
+              )}
+              <button className="btn btn-primary" type="submit">
+                {editingUserId ? <Edit size={18} /> : <UserPlus size={18} />} {editingUserId ? 'Actualizar Usuario' : 'Crear Usuario'}
+              </button>
+            </div>
           </form>
 
           <div className="history-table">
@@ -837,9 +881,12 @@ export default function CotizacionPage() {
               <div className="history-row" key={user.id}>
                 <div>
                   <div className="font-bold">{user.username}</div>
-                  <div className="text-sm text-gray">{user.role === 'ADMIN' ? 'Administrador' : 'Cotizador'}</div>
+                  <div className="text-sm text-gray">{user.role === 'ADMIN' ? 'Administrador' : 'Cotizador'} {user.nombre || user.apellido ? `| ${user.nombre || ''} ${user.apellido || ''}` : ''}</div>
                 </div>
-                <div className="history-actions">
+                <div className="history-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button className="btn btn-outline" onClick={() => handleEditUser(user)}>
+                    <Edit size={16} /> Editar
+                  </button>
                   <button className="btn btn-outline danger-outline" onClick={() => deleteUser(user)} disabled={user.id === currentUser.id}>
                     <Trash2 size={16} /> Eliminar
                   </button>

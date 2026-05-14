@@ -13,6 +13,9 @@ export async function GET() {
         id: true,
         username: true,
         role: true,
+        nombre: true,
+        apellido: true,
+        telefono: true,
         createdAt: true
       }
     });
@@ -29,7 +32,7 @@ export async function POST(request: Request) {
     if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
     const data = await request.json();
-    const { username, password, role } = data;
+    const { username, password, role, nombre, apellido, telefono } = data;
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Usuario y contrasena son requeridos' }, { status: 400 });
@@ -54,12 +57,18 @@ export async function POST(request: Request) {
       data: {
         username,
         password: hashedPassword,
-        role: safeRole
+        role: safeRole,
+        nombre: nombre || null,
+        apellido: apellido || null,
+        telefono: telefono || null
       },
       select: {
         id: true,
         username: true,
-        role: true
+        role: true,
+        nombre: true,
+        apellido: true,
+        telefono: true
       }
     });
 
@@ -94,5 +103,53 @@ export async function DELETE(request: Request) {
   } catch (error) {
     console.error("Error deleting user:", error);
     return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const admin = await requireAdmin();
+    if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
+
+    const data = await request.json();
+    const { id, username, password, role, nombre, apellido, telefono } = data;
+
+    if (!id || !username) {
+      return NextResponse.json({ error: 'ID y usuario son requeridos' }, { status: 400 });
+    }
+
+    const updateData: any = {
+      username,
+      role: role === 'ADMIN' ? 'ADMIN' : 'USER',
+      nombre: nombre || null,
+      apellido: apellido || null,
+      telefono: telefono || null,
+    };
+
+    if (password && password.trim() !== '') {
+      if (password.length < 6) {
+        return NextResponse.json({ error: 'La contrasena debe tener al menos 6 caracteres' }, { status: 400 });
+      }
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        username: true,
+        role: true,
+        nombre: true,
+        apellido: true,
+        telefono: true,
+        createdAt: true
+      }
+    });
+
+    return NextResponse.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }

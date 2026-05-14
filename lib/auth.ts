@@ -29,6 +29,9 @@ export async function getCurrentUser() {
         id: true,
         username: true,
         role: true,
+        nombre: true,
+        apellido: true,
+        telefono: true,
         createdAt: true,
       },
     });
