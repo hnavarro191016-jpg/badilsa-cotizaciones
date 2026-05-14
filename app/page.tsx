@@ -941,7 +941,7 @@ export default function CotizacionPage() {
                     <td className="text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
                       {item.isEditing ? (
                         <>
-                          <input type="number" className="inline-input text-center no-print" value={item.cantidad} onChange={(e) => updateItem(item.id, 'cantidad', parseFloat(e.target.value) || 0)} />
+                          <input type="number" className="inline-input text-center no-print" value={item.cantidad === 0 ? '' : item.cantidad} onChange={(e) => updateItem(item.id, 'cantidad', e.target.value === '' ? 0 : parseFloat(e.target.value))} onFocus={(e) => e.target.select()} />
                           <span className="print-only">{item.cantidad}</span>
                         </>
                       ) : (
@@ -979,7 +979,7 @@ export default function CotizacionPage() {
                       {item.isEditing ? (
                         <>
                           <span className="currency-prefix no-print">$</span>
-                          <input type="number" className="inline-input text-right no-print" value={item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', parseFloat(e.target.value) || 0)} style={{ width: '70px' }} />
+                          <input type="number" className="inline-input text-right no-print" value={item.precioUnitario === 0 ? '' : item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', e.target.value === '' ? 0 : parseFloat(e.target.value))} style={{ width: '70px' }} onFocus={(e) => e.target.select()} />
                           <span className="print-only">$ {formatNumber(item.precioUnitario)}</span>
                         </>
                       ) : (
@@ -988,7 +988,7 @@ export default function CotizacionPage() {
                     </td>
                     <td className="no-print text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
                       {item.isEditing ? (
-                        <input type="number" className="inline-input text-right" value={item.valorDolar} onChange={(e) => updateItem(item.id, 'valorDolar', parseFloat(e.target.value) || 1)} style={{ width: '70px' }} />
+                        <input type="number" className="inline-input text-right" value={item.valorDolar === 0 ? '' : item.valorDolar} onChange={(e) => updateItem(item.id, 'valorDolar', e.target.value === '' ? 0 : parseFloat(e.target.value))} style={{ width: '70px' }} onFocus={(e) => e.target.select()} />
                       ) : (
                         <span>{item.valorDolar}</span>
                       )}
