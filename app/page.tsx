@@ -26,6 +26,7 @@ interface CotizacionData {
   empresa: string;
   moneda: 'DOLARES' | 'PESOS';
   observaciones: string;
+  propuesta?: string;
   tiempoEntrega: string;
   subTotal?: number;
   iva?: number;
@@ -159,6 +160,7 @@ export default function CotizacionPage() {
   const [empresa, setEmpresa] = useState('');
   const [moneda, setMoneda] = useState<'DOLARES' | 'PESOS'>('DOLARES');
   const [observaciones, setObservaciones] = useState('');
+  const [propuesta, setPropuesta] = useState('');
   const [tiempoEntrega, setTiempoEntrega] = useState('30 dias');
   const [items, setItems] = useState<Item[]>([emptyItem()]);
 
@@ -258,6 +260,7 @@ export default function CotizacionPage() {
     setEmpresa('');
     setMoneda('DOLARES');
     setObservaciones('');
+    setPropuesta('');
     setTiempoEntrega('30 dias');
     setItems([emptyItem()]);
     setCurrentCotizacionId(null);
@@ -272,6 +275,7 @@ export default function CotizacionPage() {
     setEmpresa(cotizacion.empresa);
     setMoneda(cotizacion.moneda);
     setObservaciones(cotizacion.observaciones);
+    setPropuesta(cotizacion.propuesta || '');
     setTiempoEntrega(cotizacion.tiempoEntrega);
     setItems(cotizacion.items.map((item) => ({ ...item, valorDolar: item.valorDolar || 1, isEditing: false })));
     setCurrentCotizacionId(cotizacion.id || null);
@@ -364,6 +368,7 @@ export default function CotizacionPage() {
       empresa,
       moneda,
       observaciones,
+      propuesta,
       tiempoEntrega,
       items: items.map(({ isEditing, ...rest }) => rest as Item),
     };
@@ -869,7 +874,6 @@ export default function CotizacionPage() {
               Carretera AguaFria Km 1.5 Apodaca,NL.<br />
               CP 66620<br />
               <span style={{ color: '#2563eb' }}>
-                ventas@mymdelnorte.com<br />
                 ventas@badilsa.com
               </span>
             </div>
@@ -902,6 +906,21 @@ export default function CotizacionPage() {
           <p className="text-sm mb-4" style={{ marginTop: '1rem' }}>
             Atencion a su solicitud, me permito enviarle la cotizacion correspondiente al servicio de su interes.
           </p>
+
+          <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }} className={!propuesta ? "no-print" : ""}>
+            <span style={{ fontWeight: 'bold', fontSize: '0.875rem' }}>PROPUESTA:</span>
+            {activeTab === 'cotizacion' && (
+              <textarea
+                className="inline-input no-print"
+                value={propuesta}
+                onChange={(e) => setPropuesta(e.target.value)}
+                placeholder="Escriba aqui la propuesta..."
+                rows={2}
+                style={{ width: '100%', resize: 'vertical' }}
+              />
+            )}
+            <div className="print-only" style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>{propuesta}</div>
+          </div>
 
           <div className="table-container">
             <table className="doc-table">
@@ -1012,7 +1031,7 @@ export default function CotizacionPage() {
                 <span className="total-value">$ {formatNumber(subTotal)}</span>
               </div>
               <div className="total-row">
-                <span className="total-label"></span>
+                <span className="total-label" style={{ textAlign: 'right', paddingRight: '0.5rem', fontWeight: 'bold', fontSize: '1rem' }}>IVA:</span>
                 <span className="total-value">$ {formatNumber(iva)}</span>
               </div>
               <div className="total-row">

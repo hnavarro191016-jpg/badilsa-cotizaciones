@@ -24,6 +24,7 @@ model Cotizacion {
   empresa       String
   moneda        String
   observaciones String
+  propuesta     String   @default("")
   tiempoEntrega String
   subTotal      Float
   iva           Float

@@ -12,10 +12,10 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
     window.print();
   };
 
-  const formatCurrency = (value: number) => new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN',
-  }).format(value);
+  const formatNumber = (value: number) => new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value || 0);
 
   const formatDisplayDate = (dateString: string) => {
     if (!dateString) return '';
@@ -51,7 +51,6 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
             Carretera AguaFria Km 1.5 Apodaca,NL.<br />
             CP 66620<br />
             <span style={{ color: '#2563eb' }}>
-              ventas@mymdelnorte.com<br />
               ventas@badilsa.com
             </span>
           </div>
@@ -78,6 +77,13 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
           Atencion a su solicitud, me permito enviarle la cotizacion correspondiente al servicio de su interes.
         </p>
 
+        {cotizacion.propuesta && (
+          <div style={{ marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+            <span style={{ fontWeight: 'bold', fontSize: '0.875rem' }}>PROPUESTA:</span>
+            <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>{cotizacion.propuesta}</div>
+          </div>
+        )}
+
         <div className="table-container">
           <table className="doc-table">
             <thead>
@@ -101,7 +107,7 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
                     $ {item.precioUnitario.toFixed(2)}
                   </td>
                   <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                    $ {formatCurrency(item.cantidad * item.precioUnitario * (item.valorDolar || 1)).replace('$', '').replace('MXN', '').replace('USD', '').trim()}
+                    $ {formatNumber(item.cantidad * item.precioUnitario * (item.valorDolar || 1))}
                   </td>
                 </tr>
               ))}
@@ -117,15 +123,15 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
           <div className="totals-block">
             <div className="total-row">
               <span className="total-label blue-bg">Sub-Total</span>
-              <span className="total-value">$ {formatCurrency(cotizacion.subTotal).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+              <span className="total-value">$ {formatNumber(cotizacion.subTotal)}</span>
             </div>
             <div className="total-row">
-              <span className="total-label"></span>
-              <span className="total-value">$ {formatCurrency(cotizacion.iva).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+              <span className="total-label" style={{ textAlign: 'right', paddingRight: '0.5rem', fontWeight: 'bold', fontSize: '1rem' }}>IVA:</span>
+              <span className="total-value">$ {formatNumber(cotizacion.iva)}</span>
             </div>
             <div className="total-row">
               <span className="total-label blue-bg">Total</span>
-              <span className="total-value font-bold">$ {formatCurrency(cotizacion.total).replace('$', '').replace('MXN', '').replace('USD', '').trim()}</span>
+              <span className="total-value font-bold">$ {formatNumber(cotizacion.total)}</span>
             </div>
           </div>
         </div>

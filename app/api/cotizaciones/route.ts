@@ -26,7 +26,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { folio, fecha, atencion, empresa, moneda, observaciones, tiempoEntrega, items } = data;
+    const { folio, fecha, atencion, empresa, moneda, observaciones, propuesta, tiempoEntrega, items } = data;
 
     if (!folio || !fecha || !atencion || !empresa || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Datos incompletos de cotizacion' }, { status: 400 });
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
             empresa,
             moneda,
             observaciones,
+            propuesta: propuesta || '',
             tiempoEntrega,
             subTotal,
             iva,
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
           empresa,
           moneda,
           observaciones,
+          propuesta: propuesta || '',
           tiempoEntrega,
           subTotal,
           iva,
