@@ -9,15 +9,13 @@ export async function GET() {
     });
 
     if (!ultimaRemision) {
-      return NextResponse.json({ folio: '004259' }); // O el número con el que quieran empezar si es la primera
+      return NextResponse.json({ folio: '000001' });
     }
 
-    // El folio de la nota suele ser numérico según la imagen
-    const folioStr = ultimaRemision.folio.replace(/\D/g, ''); // Quitar letras por si acaso
-    const numeroActual = parseInt(folioStr || '4259', 10);
+    const folioStr = ultimaRemision.folio.replace(/\D/g, '');
+    const numeroActual = parseInt(folioStr || '0', 10);
     const siguienteNumero = numeroActual + 1;
     
-    // Rellenar con ceros a la izquierda, ej. 004260
     const siguienteFolio = siguienteNumero.toString().padStart(6, '0');
 
     return NextResponse.json({ folio: siguienteFolio });

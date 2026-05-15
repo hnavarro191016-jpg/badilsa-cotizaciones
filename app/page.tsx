@@ -1347,7 +1347,7 @@ export default function CotizacionPage() {
           {/* DOCUMENT HEADER */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
             {/* Logo area */}
-            <div style={{ width: '60%' }}>
+            <div style={{ width: '55%' }}>
               <img src="/logo.png" alt="Badilsa Logo" style={{ width: '250px', marginBottom: '0.5rem' }} />
               <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2' }}>
                 <p>Carrt. Agua Fria Km. 1.5 Col. Centro de Agua Fria</p>
@@ -1357,7 +1357,7 @@ export default function CotizacionPage() {
             </div>
 
             {/* Folio area */}
-            <div style={{ width: '35%', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+            <div style={{ width: '40%', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
               <div style={{ display: 'flex', border: '2px solid #000' }}>
                 <div style={{ background: '#3b82f6', color: 'white', padding: '0.5rem', fontWeight: 'bold', width: '50%', textAlign: 'center' }}>
                   REMISION
@@ -1367,14 +1367,14 @@ export default function CotizacionPage() {
                 </div>
               </div>
               <div style={{ display: 'flex', border: '1px solid #000' }}>
-                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '40%', fontSize: '0.8rem', textAlign: 'center' }}>FECHA</div>
-                <div style={{ width: '60%', padding: '0.2rem', textAlign: 'center' }}>
+                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '50%', fontSize: '0.8rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>FECHA</div>
+                <div style={{ width: '50%', padding: '0.2rem', textAlign: 'center' }}>
                   <input type="date" className="inline-input no-print" value={remisionFecha} onChange={e => setRemisionFecha(e.target.value)} style={{ width: '100%', fontSize: '0.8rem' }} /><span className="print-only font-bold" style={{ fontSize: '0.8rem' }}>{remisionFecha}</span>
                 </div>
               </div>
               <div style={{ display: 'flex', border: '1px solid #000' }}>
-                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '40%', fontSize: '0.8rem', textAlign: 'center' }}>CONDICIONES DE PAGO</div>
-                <div style={{ width: '60%', padding: '0.2rem', textAlign: 'center' }}>
+                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '50%', fontSize: '0.8rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>CONDICIONES DE PAGO</div>
+                <div style={{ width: '50%', padding: '0.2rem', textAlign: 'center' }}>
                   <input type="text" className="inline-input no-print" value={remisionCondiciones} onChange={e => setRemisionCondiciones(e.target.value)} style={{ width: '100%', fontSize: '0.8rem', textAlign: 'center' }} /><span className="print-only font-bold" style={{ fontSize: '0.8rem' }}>{remisionCondiciones}</span>
                 </div>
               </div>
