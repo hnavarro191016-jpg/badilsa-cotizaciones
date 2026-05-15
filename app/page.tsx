@@ -68,6 +68,7 @@ interface NotaRemisionData {
   tel: string;
   lugarExp: string;
   cotizacionId?: string | null;
+  cotizacion?: { folio: string } | null;
   items: ItemNotaRemision[];
 }
 
