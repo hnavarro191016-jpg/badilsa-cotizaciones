@@ -288,7 +288,7 @@ export default function CotizacionPage() {
   };
 
   const fetchRemisiones = async () => {
-    const res = await fetch('/api/remisiones');
+    const res = await fetch('/api/remisiones', { cache: 'no-store' });
     if (res.ok) setRemisiones(await res.json());
   };
 
@@ -325,7 +325,7 @@ export default function CotizacionPage() {
   };
 
   const fetchNextRemisionFolio = async () => {
-    const res = await fetch('/api/remisiones/next-folio');
+    const res = await fetch('/api/remisiones/next-folio', { cache: 'no-store' });
     if (!res.ok) return '';
     const data = await res.json();
     return data.folio || '';
