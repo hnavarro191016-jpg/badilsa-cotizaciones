@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'reportes';
+type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'reportes' | 'remisiones';
 type Mode = 'new' | 'edit';
 
 interface Item {
@@ -47,6 +47,28 @@ interface UserData {
   apellido?: string | null;
   telefono?: string | null;
   createdAt?: string;
+}
+
+interface ItemNotaRemision {
+  id: string;
+  cantidad: number;
+  descripcion: string;
+  isEditing?: boolean;
+}
+
+interface NotaRemisionData {
+  id?: string;
+  folio: string;
+  fecha: string;
+  condiciones: string;
+  cliente: string;
+  direccion: string;
+  ciudad: string;
+  rfc: string;
+  tel: string;
+  lugarExp: string;
+  cotizacionId?: string | null;
+  items: ItemNotaRemision[];
 }
 
 const todayInputValue = () => new Date().toISOString().slice(0, 10);
@@ -147,6 +169,13 @@ const emptyItem = (): Item => ({
   isEditing: true,
 });
 
+const emptyItemRemision = (): ItemNotaRemision => ({
+  id: Date.now().toString(),
+  cantidad: 1,
+  descripcion: '',
+  isEditing: true,
+});
+
 export default function CotizacionPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ActiveTab>('inicio');
@@ -179,6 +208,20 @@ export default function CotizacionPage() {
   const [newTelefono, setNewTelefono] = useState('');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
+  const [remisiones, setRemisiones] = useState<NotaRemisionData[]>([]);
+  const [remisionFolio, setRemisionFolio] = useState('');
+  const [remisionFecha, setRemisionFecha] = useState(todayInputValue());
+  const [remisionCondiciones, setRemisionCondiciones] = useState('14 DIAS');
+  const [remisionCliente, setRemisionCliente] = useState('');
+  const [remisionDireccion, setRemisionDireccion] = useState('');
+  const [remisionCiudad, setRemisionCiudad] = useState('');
+  const [remisionRfc, setRemisionRfc] = useState('');
+  const [remisionTel, setRemisionTel] = useState('');
+  const [remisionLugarExp, setRemisionLugarExp] = useState('Apodaca N.L.');
+  const [remisionCotizacionId, setRemisionCotizacionId] = useState('');
+  const [remisionItems, setRemisionItems] = useState<ItemNotaRemision[]>([emptyItemRemision()]);
+  const [currentRemisionId, setCurrentRemisionId] = useState<string | null>(null);
+
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -193,6 +236,7 @@ export default function CotizacionPage() {
   useEffect(() => {
     fetchCurrentUser();
     fetchHistorial();
+    fetchRemisiones();
   }, []);
 
   useEffect(() => {
@@ -242,6 +286,11 @@ export default function CotizacionPage() {
     if (res.ok) setHistorial(await res.json());
   };
 
+  const fetchRemisiones = async () => {
+    const res = await fetch('/api/remisiones');
+    if (res.ok) setRemisiones(await res.json());
+  };
+
   const fetchUsers = async () => {
     const res = await fetch('/api/users');
     if (res.ok) setUsers(await res.json());
@@ -272,6 +321,48 @@ export default function CotizacionPage() {
     setItems([emptyItem()]);
     setCurrentCotizacionId(null);
     setActiveTab('cotizacion');
+  };
+
+  const fetchNextRemisionFolio = async () => {
+    const res = await fetch('/api/remisiones/next-folio');
+    if (!res.ok) return '';
+    const data = await res.json();
+    return data.folio || '';
+  };
+
+  const startNewRemision = async () => {
+    const nextFolio = await fetchNextRemisionFolio();
+    setMode('new');
+    setRemisionFolio(nextFolio);
+    setRemisionFecha(todayInputValue());
+    setRemisionCondiciones('14 DIAS');
+    setRemisionCliente('');
+    setRemisionDireccion('');
+    setRemisionCiudad('');
+    setRemisionRfc('');
+    setRemisionTel('');
+    setRemisionLugarExp('Apodaca N.L.');
+    setRemisionCotizacionId('');
+    setRemisionItems([emptyItemRemision()]);
+    setCurrentRemisionId(null);
+    setActiveTab('remisiones');
+  };
+
+  const loadRemision = (rem: NotaRemisionData) => {
+    setMode('edit');
+    setRemisionFolio(rem.folio);
+    setRemisionFecha(rem.fecha);
+    setRemisionCondiciones(rem.condiciones);
+    setRemisionCliente(rem.cliente);
+    setRemisionDireccion(rem.direccion);
+    setRemisionCiudad(rem.ciudad);
+    setRemisionRfc(rem.rfc);
+    setRemisionTel(rem.tel);
+    setRemisionLugarExp(rem.lugarExp);
+    setRemisionCotizacionId(rem.cotizacionId || '');
+    setRemisionItems(rem.items.map(i => ({ ...i, isEditing: false })));
+    setCurrentRemisionId(rem.id || null);
+    setActiveTab('remisiones');
   };
 
   const loadCotizacion = (cotizacion: CotizacionData) => {
@@ -364,6 +455,65 @@ export default function CotizacionPage() {
 
 
 
+  const saveRemision = async () => {
+    setIsSaving(true);
+    setError('');
+
+    const payload: NotaRemisionData = {
+      folio: remisionFolio,
+      fecha: remisionFecha,
+      condiciones: remisionCondiciones,
+      cliente: remisionCliente,
+      direccion: remisionDireccion,
+      ciudad: remisionCiudad,
+      rfc: remisionRfc,
+      tel: remisionTel,
+      lugarExp: remisionLugarExp,
+      cotizacionId: remisionCotizacionId,
+      items: remisionItems.map(({ isEditing, ...rest }) => rest as ItemNotaRemision),
+    };
+
+    try {
+      const res = await fetch('/api/remisiones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error || 'No se pudo guardar la remision.');
+        return;
+      }
+
+      await fetchRemisiones();
+      showMessage(mode === 'new' ? 'Remision guardada.' : 'Remision actualizada.');
+      setMode('edit');
+    } catch {
+      showError('Error de conexion al guardar.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const deleteRemision = async (rem: NotaRemisionData) => {
+    if (!window.confirm(`Eliminar la remision ${rem.folio}?`)) return;
+
+    const res = await fetch(`/api/remisiones?folio=${encodeURIComponent(rem.folio)}`, {
+      method: 'DELETE',
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      showError(data.error || 'No se pudo eliminar la remision.');
+      return;
+    }
+
+    await fetchRemisiones();
+    showMessage('Remision eliminada.');
+    if (remisionFolio === rem.folio) startNewRemision();
+  };
+
   const saveCotizacion = async () => {
     setIsSaving(true);
     setError('');
@@ -433,6 +583,22 @@ export default function CotizacionPage() {
 
   const updateItem = (id: string, field: keyof Item, value: string | number) => {
     setItems((current) => current.map((item) => (
+      item.id === id ? { ...item, [field]: value } : item
+    )));
+  };
+
+  const addItemRemision = () => setRemisionItems((current) => [
+    ...current.map(item => ({ ...item, isEditing: false })), 
+    emptyItemRemision()
+  ]);
+  const removeItemRemision = (id: string) => setRemisionItems((current) => current.filter((item) => item.id !== id));
+
+  const toggleEditItemRemision = (id: string) => setRemisionItems((current) => current.map((item) => (
+    item.id === id ? { ...item, isEditing: !item.isEditing } : item
+  )));
+
+  const updateItemRemision = (id: string, field: keyof ItemNotaRemision, value: string | number) => {
+    setRemisionItems((current) => current.map((item) => (
       item.id === id ? { ...item, [field]: value } : item
     )));
   };
@@ -530,7 +696,7 @@ export default function CotizacionPage() {
 
   const handlePrint = () => {
     const originalTitle = document.title;
-    document.title = folio || 'Cotizacion';
+    document.title = activeTab === 'remisiones' ? (remisionFolio || 'Remision') : (folio || 'Cotizacion');
     window.print();
     setTimeout(() => { document.title = originalTitle; }, 100);
   };
@@ -552,7 +718,7 @@ export default function CotizacionPage() {
             <button className="btn btn-outline" onClick={handleLogout} style={{ color: '#ef4444', borderColor: '#ef4444' }}>
               <LogOut size={18} /> Salir
             </button>
-            {activeTab === 'cotizacion' && (
+            {(activeTab === 'cotizacion' || activeTab === 'remisiones') && (
               <button className="btn btn-outline" onClick={handlePrint}>
                 <Printer size={18} /> Imprimir PDF
               </button>
@@ -570,7 +736,13 @@ export default function CotizacionPage() {
             {activeTab === 'cotizacion' && (
               <button className="btn btn-primary" onClick={saveCotizacion} disabled={isSaving}>
                 {message ? <Check size={18} /> : <Save size={18} />}
-                {isSaving ? 'Guardando...' : 'Guardar'}
+                {isSaving ? 'Guardando...' : 'Guardar Cotizacion'}
+              </button>
+            )}
+            {activeTab === 'remisiones' && (
+              <button className="btn btn-primary" onClick={saveRemision} disabled={isSaving}>
+                {message ? <Check size={18} /> : <Save size={18} />}
+                {isSaving ? 'Guardando...' : 'Guardar Remision'}
               </button>
             )}
           </div>
@@ -590,6 +762,9 @@ export default function CotizacionPage() {
           </button>
           <button className={`tab-button ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
             <PieChart size={18} /> Reportes
+          </button>
+          <button className={`tab-button ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={startNewRemision}>
+            <FileText size={18} /> Notas de Remisión
           </button>
           {currentUser?.role === 'ADMIN' && (
             <button className={`tab-button ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
@@ -1107,6 +1282,202 @@ export default function CotizacionPage() {
               <span className="print-only">{tiempoEntrega}</span>
             </p>
             <p className="text-center" style={{ color: '#2563eb', marginTop: '1.5rem', textDecoration: 'underline' }}>www.badilsa.com</p>
+          </div>
+        </div>
+      )}
+      {activeTab === 'remisiones' && !currentRemisionId && mode !== 'new' && (
+        <section className="panel-page no-print">
+          <div className="panel-header">
+            <div>
+              <h2>Notas de Remisión</h2>
+              <p>Historial de entregas</p>
+            </div>
+            <button className="btn btn-primary" onClick={startNewRemision}>
+              <Plus size={18} /> Nueva Remisión
+            </button>
+          </div>
+
+          <div className="history-table">
+            {remisiones.length === 0 ? (
+              <div className="empty-state">No hay notas de remisión registradas.</div>
+            ) : (
+              remisiones.map((rem) => (
+                <div className="history-row" key={rem.folio}>
+                  <div>
+                    <div className="font-bold">{rem.folio} - {rem.cliente}</div>
+                    <div className="text-sm text-gray-500">
+                      {rem.fecha} | {rem.items.length} conceptos | {rem.cotizacionId ? `Ligado a Cot. ${rem.cotizacion?.folio}` : 'Sin cotización ligada'}
+                    </div>
+                  </div>
+                  <div className="actions">
+                    <button className="btn btn-outline" onClick={() => loadRemision(rem)}>
+                      <Edit size={16} /> Abrir
+                    </button>
+                    {currentUser?.role === 'ADMIN' && (
+                      <button className="text-danger btn btn-outline" style={{ borderColor: 'transparent' }} onClick={() => deleteRemision(rem)}>
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeTab === 'remisiones' && (currentRemisionId || mode === 'new') && (
+        <div className="cotizacion-document" style={{ border: 'none' }}>
+          <div className="no-print" style={{ marginBottom: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0', display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ fontWeight: 'bold' }}>Ligar a Cotización:</div>
+            <select 
+              className="inline-input" 
+              value={remisionCotizacionId} 
+              onChange={e => setRemisionCotizacionId(e.target.value)}
+              style={{ width: '300px' }}
+            >
+              <option value="">-- Ninguna --</option>
+              {historial.map(cot => (
+                <option key={cot.id} value={cot.id || ''}>{cot.folio} - {cot.empresa}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* DOCUMENT HEADER */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+            {/* Logo area */}
+            <div style={{ width: '60%' }}>
+              <img src="/logo.png" alt="Badilsa Logo" style={{ width: '250px', marginBottom: '0.5rem' }} />
+              <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2' }}>
+                <p>Carrt. Agua Fria Km. 1.5 Col. Centro de Agua Fria</p>
+                <p>Tel: (81) 8314-2787 C.P. 66620. Apodaca, N.L.</p>
+                <p>ventas@badilsa.com</p>
+              </div>
+            </div>
+
+            {/* Folio area */}
+            <div style={{ width: '35%', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <div style={{ display: 'flex', border: '2px solid #000' }}>
+                <div style={{ background: '#3b82f6', color: 'white', padding: '0.5rem', fontWeight: 'bold', width: '50%', textAlign: 'center' }}>
+                  REMISION
+                </div>
+                <div style={{ background: '#fef08a', color: '#ef4444', padding: '0.5rem', fontWeight: 'bold', width: '50%', textAlign: 'center', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  Nº <input className="inline-input text-center no-print" value={remisionFolio} onChange={e => setRemisionFolio(e.target.value)} style={{ width: '80px', background: 'transparent', color: '#ef4444', fontWeight: 'bold', borderBottom: '1px dashed #ef4444' }} /><span className="print-only" style={{ marginLeft: '0.25rem' }}>{remisionFolio}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', border: '1px solid #000' }}>
+                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '40%', fontSize: '0.8rem', textAlign: 'center' }}>FECHA</div>
+                <div style={{ width: '60%', padding: '0.2rem', textAlign: 'center' }}>
+                  <input type="date" className="inline-input no-print" value={remisionFecha} onChange={e => setRemisionFecha(e.target.value)} style={{ width: '100%', fontSize: '0.8rem' }} /><span className="print-only font-bold" style={{ fontSize: '0.8rem' }}>{remisionFecha}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', border: '1px solid #000' }}>
+                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '40%', fontSize: '0.8rem', textAlign: 'center' }}>CONDICIONES DE PAGO</div>
+                <div style={{ width: '60%', padding: '0.2rem', textAlign: 'center' }}>
+                  <input type="text" className="inline-input no-print" value={remisionCondiciones} onChange={e => setRemisionCondiciones(e.target.value)} style={{ width: '100%', fontSize: '0.8rem', textAlign: 'center' }} /><span className="print-only font-bold" style={{ fontSize: '0.8rem' }}>{remisionCondiciones}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* VENDIDO A */}
+          <div style={{ marginBottom: '1.5rem', border: '1px solid #000' }}>
+            <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem 0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>VENDIDO A</div>
+            <div style={{ padding: '0.5rem', display: 'grid', gridTemplateColumns: '80px 1fr 50px 1fr', gap: '0.5rem 1rem', fontSize: '0.85rem' }}>
+              <div style={{ fontWeight: 'bold' }}>Cliente:</div>
+              <div style={{ gridColumn: 'span 3' }}>
+                <input className="inline-input no-print w-full" value={remisionCliente} onChange={e => setRemisionCliente(e.target.value)} placeholder="Nombre del cliente" style={{ fontSize: '1rem', fontWeight: 'bold' }} />
+                <span className="print-only" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1e3a8a' }}>{remisionCliente}</span>
+              </div>
+              
+              <div style={{ fontWeight: 'bold' }}>Dirección:</div>
+              <div style={{ gridColumn: 'span 3', borderBottom: '1px solid #cbd5e1' }}>
+                <input className="inline-input no-print w-full" value={remisionDireccion} onChange={e => setRemisionDireccion(e.target.value)} />
+                <span className="print-only">{remisionDireccion}</span>
+              </div>
+
+              <div style={{ fontWeight: 'bold' }}>Ciudad:</div>
+              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
+                <input className="inline-input no-print w-full" value={remisionCiudad} onChange={e => setRemisionCiudad(e.target.value)} />
+                <span className="print-only">{remisionCiudad}</span>
+              </div>
+
+              <div style={{ fontWeight: 'bold' }}>Tel:</div>
+              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
+                <input className="inline-input no-print w-full" value={remisionTel} onChange={e => setRemisionTel(e.target.value)} />
+                <span className="print-only">{remisionTel}</span>
+              </div>
+
+              <div style={{ fontWeight: 'bold' }}>R.F.C.:</div>
+              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
+                <input className="inline-input no-print w-full" value={remisionRfc} onChange={e => setRemisionRfc(e.target.value)} />
+                <span className="print-only">{remisionRfc}</span>
+              </div>
+
+              <div style={{ fontWeight: 'bold' }}>Lugar Exp:</div>
+              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
+                <input className="inline-input no-print w-full" value={remisionLugarExp} onChange={e => setRemisionLugarExp(e.target.value)} />
+                <span className="print-only">{remisionLugarExp}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* TABLE */}
+          <div className="table-container" style={{ border: '2px solid #3b82f6', borderRadius: '4px' }}>
+            <table className="doc-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ width: '15%', background: '#3b82f6', color: 'white', padding: '0.5rem', textAlign: 'center', borderRight: '1px solid white' }}>CANTIDAD</th>
+                  <th style={{ width: '85%', background: '#3b82f6', color: 'white', padding: '0.5rem', textAlign: 'center' }}>DESCRIPCION</th>
+                  <th className="no-print" style={{ width: '50px' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {remisionItems.map((item, index) => (
+                  <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ textAlign: 'center', verticalAlign: 'top', padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>
+                      {item.isEditing ? (
+                        <>
+                          <input type="number" className="inline-input text-center no-print" value={item.cantidad || ''} onChange={e => updateItemRemision(item.id, 'cantidad', parseFloat(e.target.value) || 0)} style={{ width: '80%' }} />
+                          <span className="print-only">{item.cantidad}</span>
+                        </>
+                      ) : (
+                        <span>{item.cantidad}</span>
+                      )}
+                    </td>
+                    <td style={{ verticalAlign: 'top', padding: '0.5rem' }}>
+                      {item.isEditing ? (
+                        <>
+                          <textarea className="inline-input no-print w-full" value={item.descripcion} onChange={e => updateItemRemision(item.id, 'descripcion', e.target.value)} rows={2} style={{ resize: 'vertical' }} />
+                          <div className="print-only" style={{ whiteSpace: 'pre-wrap' }}>{item.descripcion}</div>
+                        </>
+                      ) : (
+                        <div style={{ whiteSpace: 'pre-wrap' }}>{item.descripcion}</div>
+                      )}
+                    </td>
+                    <td className="no-print text-center" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                      <button className="btn btn-outline" style={{ padding: '0.3rem', marginRight: '0.25rem', borderColor: 'transparent', minWidth: 'auto' }} onClick={() => toggleEditItemRemision(item.id)}>
+                        {item.isEditing ? <Check size={16} style={{ color: '#16a34a' }} /> : <Edit size={16} style={{ color: '#2563eb' }} />}
+                      </button>
+                      <button className="text-danger btn btn-outline" style={{ padding: '0.3rem', borderColor: 'transparent', minWidth: 'auto' }} onClick={() => removeItemRemision(item.id)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            <div className="no-print" style={{ padding: '0.5rem', textAlign: 'center', borderTop: '1px solid #cbd5e1' }}>
+              <button className="btn btn-outline text-sm" onClick={addItemRemision}><Plus size={16} /> Agregar Fila</button>
+            </div>
+          </div>
+
+          {/* FOOTER */}
+          <div style={{ marginTop: '5rem', display: 'flex', justifyContent: 'flex-start' }}>
+            <div style={{ width: '40%', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '0.5rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+              NOMBRE Y FIRMA DE RECIBIDO
+            </div>
           </div>
         </div>
       )}

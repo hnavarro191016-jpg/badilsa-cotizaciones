@@ -38,6 +38,7 @@ model Cotizacion {
   updatedAt     DateTime @updatedAt
   items         ItemCotizacion[]
   archivosOC    OrdenCompraArchivo[]
+  notasRemision NotaRemision[]
 }
 
 model ItemCotizacion {
@@ -59,4 +60,30 @@ model OrdenCompraArchivo {
   fechaSubida   DateTime   @default(now())
   
   cotizacion    Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+}
+
+model NotaRemision {
+  id            String   @id @default(cuid())
+  folio         String   @unique
+  fecha         String
+  condiciones   String
+  cliente       String
+  direccion     String
+  ciudad        String
+  rfc           String
+  tel           String
+  lugarExp      String
+  cotizacionId  String?
+  cotizacion    Cotizacion? @relation(fields: [cotizacionId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  items         ItemNotaRemision[]
+}
+
+model ItemNotaRemision {
+  id               String       @id @default(cuid())
+  notaRemisionId   String
+  cantidad         Float
+  descripcion      String
+  notaRemision     NotaRemision @relation(fields: [notaRemisionId], references: [id], onDelete: Cascade)
 }
