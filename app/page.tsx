@@ -764,7 +764,7 @@ export default function CotizacionPage() {
           <button className={`tab-button ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
             <PieChart size={18} /> Reportes
           </button>
-          <button className={`tab-button ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={startNewRemision}>
+          <button className={`tab-button ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={() => { setActiveTab('remisiones'); setCurrentRemisionId(null); setMode('edit'); }}>
             <FileText size={18} /> Notas de Remisión
           </button>
           {currentUser?.role === 'ADMIN' && (
