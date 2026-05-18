@@ -1307,7 +1307,12 @@ export default function CotizacionPage() {
                   <div>
                     <div className="font-bold">{rem.folio} - {rem.cliente}</div>
                     <div className="text-sm text-gray-500">
-                      {rem.fecha} | {rem.items.length} conceptos | {rem.cotizacionId ? `Ligado a Cot. ${rem.cotizacion?.folio}` : 'Sin cotización ligada'}
+                      {rem.fecha} | {rem.items.length} conceptos | {' '}
+                      {rem.cotizacionId ? (
+                        <>Ligado a Cot. <a href={`/cotizacion/ver/${rem.cotizacionId}`} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline' }}>{rem.cotizacion?.folio}</a></>
+                      ) : (
+                        'Sin cotización ligada'
+                      )}
                     </div>
                   </div>
                   <div className="actions">
