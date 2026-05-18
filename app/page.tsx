@@ -1328,7 +1328,7 @@ export default function CotizacionPage() {
       )}
 
       {activeTab === 'remisiones' && (currentRemisionId || mode === 'new') && (
-        <div className="document-page">
+        <div className="document-page" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
           <div className="no-print" style={{ marginBottom: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0', display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ fontWeight: 'bold' }}>Ligar a Cotización:</div>
             <select 
@@ -1346,8 +1346,8 @@ export default function CotizacionPage() {
 
           {/* DOCUMENT HEADER */}
           <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
-            <img src="/logo.png" alt="Badilsa Logo" style={{ width: '250px' }} />
-            <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2', marginTop: '-30px', position: 'relative', zIndex: 10 }}>
+            <img src="/logo.png" alt="Badilsa Logo" style={{ width: '220px', marginTop: '-30px' }} />
+            <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2', marginTop: '-45px', position: 'relative', zIndex: 10 }}>
               <p style={{ margin: 0 }}>Carret. Agua Fria Km. 1.5 Col. Cerritos de Agua Fria</p>
               <p style={{ margin: 0 }}>Tel. (81) 8314-2767 C.P. 66620. Apodaca, N.L.</p>
               <p style={{ margin: 0 }}>ventas@badilsa.com</p>
@@ -1425,7 +1425,7 @@ export default function CotizacionPage() {
                   </tr>
                 ))}
                 {Array.from({ length: Math.max(0, 20 - remisionItems.length) }).map((_, i) => (
-                  <tr key={`empty-${i}`} className="print-row" style={{ height: '24px', borderBottom: '1px solid #e2e8f0' }}>
+                  <tr key={`empty-${i}`} className="print-row" style={{ height: '20px', borderBottom: '1px solid #e2e8f0' }}>
                     <td style={{ borderRight: '1px solid #e2e8f0', padding: '0.1rem 0.5rem' }}>&nbsp;</td>
                     <td style={{ padding: '0.1rem 0.5rem' }}>&nbsp;</td>
                     <td className="no-print"></td>
@@ -1440,7 +1440,7 @@ export default function CotizacionPage() {
           </div>
 
           {/* FOOTER */}
-          <div style={{ marginTop: '5rem', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: '300px', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '0.5rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
               NOMBRE Y FIRMA DE RECIBIDO
             </div>
