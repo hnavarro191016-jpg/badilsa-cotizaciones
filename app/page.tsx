@@ -1345,81 +1345,39 @@ export default function CotizacionPage() {
           </div>
 
           {/* DOCUMENT HEADER */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
-            {/* Logo area */}
-            <div style={{ width: '55%' }}>
-              <img src="/logo.png" alt="Badilsa Logo" style={{ width: '250px', marginBottom: '0.5rem' }} />
-              <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2' }}>
-                <p>Carrt. Agua Fria Km. 1.5 Col. Centro de Agua Fria</p>
-                <p>Tel: (81) 8314-2787 C.P. 66620. Apodaca, N.L.</p>
-                <p>ventas@badilsa.com</p>
-              </div>
-            </div>
-
-            {/* Folio area */}
-            <div style={{ width: '40%', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-              <div style={{ display: 'flex', border: '2px solid #000' }}>
-                <div style={{ background: '#3b82f6', color: 'white', padding: '0.5rem', fontWeight: 'bold', width: '50%', textAlign: 'center' }}>
-                  REMISION
-                </div>
-                <div style={{ background: '#fef08a', color: '#ef4444', padding: '0.5rem', fontWeight: 'bold', width: '50%', textAlign: 'center', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  Nº <input className="inline-input text-center no-print" value={remisionFolio} onChange={e => setRemisionFolio(e.target.value)} style={{ width: '80px', background: 'transparent', color: '#ef4444', fontWeight: 'bold', borderBottom: '1px dashed #ef4444' }} /><span className="print-only" style={{ marginLeft: '0.25rem' }}>{remisionFolio}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', border: '1px solid #000' }}>
-                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '50%', fontSize: '0.8rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>FECHA</div>
-                <div style={{ width: '50%', padding: '0.2rem', textAlign: 'center' }}>
-                  <input type="date" className="inline-input no-print" value={remisionFecha} onChange={e => setRemisionFecha(e.target.value)} style={{ width: '100%', fontSize: '0.8rem' }} /><span className="print-only font-bold" style={{ fontSize: '0.8rem' }}>{remisionFecha}</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', border: '1px solid #000' }}>
-                <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem', fontWeight: 'bold', width: '50%', fontSize: '0.8rem', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>CONDICIONES DE PAGO</div>
-                <div style={{ width: '50%', padding: '0.2rem', textAlign: 'center' }}>
-                  <input type="text" className="inline-input no-print" value={remisionCondiciones} onChange={e => setRemisionCondiciones(e.target.value)} style={{ width: '100%', fontSize: '0.8rem', textAlign: 'center' }} /><span className="print-only font-bold" style={{ fontSize: '0.8rem' }}>{remisionCondiciones}</span>
-                </div>
-              </div>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <img src="/logo.png" alt="Badilsa Logo" style={{ width: '250px', marginBottom: '0.5rem' }} />
+            <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2' }}>
+              <p>Carret. Agua Fria Km. 1.5 Col. Cerritos de Agua Fria</p>
+              <p>Tel. (81) 8314-2767 C.P. 66620. Apodaca, N.L.</p>
+              <p>ventas@badilsa.com</p>
             </div>
           </div>
 
-          {/* VENDIDO A */}
-          <div style={{ marginBottom: '1.5rem', border: '1px solid #000' }}>
-            <div style={{ background: '#3b82f6', color: 'white', padding: '0.2rem 0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}>VENDIDO A</div>
-            <div style={{ padding: '0.5rem', display: 'grid', gridTemplateColumns: '80px 1fr 50px 1fr', gap: '0.5rem 1rem', fontSize: '0.85rem' }}>
-              <div style={{ fontWeight: 'bold' }}>Cliente:</div>
-              <div style={{ gridColumn: 'span 3' }}>
-                <input className="inline-input no-print w-full" value={remisionCliente} onChange={e => setRemisionCliente(e.target.value)} placeholder="Nombre del cliente" style={{ fontSize: '1rem', fontWeight: 'bold' }} />
-                <span className="print-only" style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#1e3a8a' }}>{remisionCliente}</span>
-              </div>
-              
-              <div style={{ fontWeight: 'bold' }}>Dirección:</div>
-              <div style={{ gridColumn: 'span 3', borderBottom: '1px solid #cbd5e1' }}>
-                <input className="inline-input no-print w-full" value={remisionDireccion} onChange={e => setRemisionDireccion(e.target.value)} />
-                <span className="print-only">{remisionDireccion}</span>
-              </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <div style={{ border: '2px solid #2563eb', padding: '0.25rem 0.5rem', color: '#1e3a8a', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <span style={{ marginRight: '0.5rem' }}>REMISION</span>
+              <input className="inline-input text-left no-print" value={remisionFolio} onChange={e => setRemisionFolio(e.target.value)} style={{ width: '80px', color: '#1e3a8a', fontWeight: 'bold' }} />
+              <span className="print-only" style={{ color: '#1e3a8a' }}>{remisionFolio}</span>
+            </div>
+            <div style={{ border: '2px solid #2563eb', padding: '0.25rem 0.5rem', color: '#1e3a8a', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+              <span style={{ marginRight: '0.5rem' }}>FECHA.</span>
+              <input type="date" className="inline-input no-print" value={remisionFecha} onChange={e => setRemisionFecha(e.target.value)} style={{ color: '#1e3a8a', fontWeight: 'bold' }} />
+              <span className="print-only" style={{ color: '#1e3a8a' }}>{remisionFecha}</span>
+            </div>
+          </div>
 
-              <div style={{ fontWeight: 'bold' }}>Ciudad:</div>
-              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
-                <input className="inline-input no-print w-full" value={remisionCiudad} onChange={e => setRemisionCiudad(e.target.value)} />
-                <span className="print-only">{remisionCiudad}</span>
-              </div>
-
-              <div style={{ fontWeight: 'bold' }}>Tel:</div>
-              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
-                <input className="inline-input no-print w-full" value={remisionTel} onChange={e => setRemisionTel(e.target.value)} />
-                <span className="print-only">{remisionTel}</span>
-              </div>
-
-              <div style={{ fontWeight: 'bold' }}>R.F.C.:</div>
-              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
-                <input className="inline-input no-print w-full" value={remisionRfc} onChange={e => setRemisionRfc(e.target.value)} />
-                <span className="print-only">{remisionRfc}</span>
-              </div>
-
-              <div style={{ fontWeight: 'bold' }}>Lugar Exp:</div>
-              <div style={{ borderBottom: '1px solid #cbd5e1' }}>
-                <input className="inline-input no-print w-full" value={remisionLugarExp} onChange={e => setRemisionLugarExp(e.target.value)} />
-                <span className="print-only">{remisionLugarExp}</span>
-              </div>
+          {/* CLIENTE Y CONTACTO */}
+          <div style={{ border: '2px solid #000', padding: '0.5rem 1rem', marginBottom: '1.5rem', display: 'flex', gap: '2rem' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>Cliente:</span>
+              <input className="inline-input no-print w-full" value={remisionCliente} onChange={e => setRemisionCliente(e.target.value)} placeholder="Nombre del cliente" style={{ fontSize: '1rem', fontWeight: 'bold' }} />
+              <span className="print-only" style={{ flex: 1, borderBottom: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 'bold' }}>{remisionCliente}</span>
+            </div>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>Contacto:</span>
+              <input className="inline-input no-print w-full" value={remisionDireccion} onChange={e => setRemisionDireccion(e.target.value)} placeholder="Nombre del contacto" style={{ fontSize: '1rem' }} />
+              <span className="print-only" style={{ flex: 1, borderBottom: '1px solid #cbd5e1', fontSize: '1rem' }}>{remisionDireccion}</span>
             </div>
           </div>
 
@@ -1466,6 +1424,13 @@ export default function CotizacionPage() {
                     </td>
                   </tr>
                 ))}
+                {Array.from({ length: Math.max(0, 20 - remisionItems.length) }).map((_, i) => (
+                  <tr key={`empty-${i}`} className="print-only" style={{ height: '35px', borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ borderRight: '1px solid #e2e8f0' }}></td>
+                    <td></td>
+                    <td className="no-print"></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
             
@@ -1475,8 +1440,8 @@ export default function CotizacionPage() {
           </div>
 
           {/* FOOTER */}
-          <div style={{ marginTop: '5rem', display: 'flex', justifyContent: 'flex-start' }}>
-            <div style={{ width: '40%', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '0.5rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+          <div style={{ marginTop: '5rem', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '300px', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '0.5rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
               NOMBRE Y FIRMA DE RECIBIDO
             </div>
           </div>
