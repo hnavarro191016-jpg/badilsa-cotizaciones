@@ -416,12 +416,14 @@ body {
 
 /* Print Styles */
 .print-only { display: none; }
+.print-row { display: none; }
 
 @media print {
   @page { size: auto; margin: 0mm; }
   body { background: white; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .no-print { display: none !important; }
   .print-only { display: inline-block !important; }
+  .print-row { display: table-row !important; }
   .app-container { min-height: auto; }
   .document-page { margin: 0; padding: 10mm 15mm; box-shadow: none; width: 100%; max-width: none; min-height: auto; border: none; }
   .inline-input { border: none !important; background: transparent !important; }
