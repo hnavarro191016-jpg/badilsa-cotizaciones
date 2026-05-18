@@ -172,7 +172,7 @@ const emptyItem = (): Item => ({
 
 const emptyItemRemision = (): ItemNotaRemision => ({
   id: Date.now().toString(),
-  cantidad: 1,
+  cantidad: 0,
   descripcion: '',
   isEditing: true,
 });
@@ -1345,8 +1345,8 @@ export default function CotizacionPage() {
           </div>
 
           {/* DOCUMENT HEADER */}
-          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-            <img src="/logo.png" alt="Badilsa Logo" style={{ width: '250px', marginBottom: '0.5rem' }} />
+          <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+            <img src="/logo.png" alt="Badilsa Logo" style={{ width: '250px', marginBottom: '0' }} />
             <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2' }}>
               <p>Carret. Agua Fria Km. 1.5 Col. Cerritos de Agua Fria</p>
               <p>Tel. (81) 8314-2767 C.P. 66620. Apodaca, N.L.</p>
@@ -1398,10 +1398,10 @@ export default function CotizacionPage() {
                       {item.isEditing ? (
                         <>
                           <input type="number" className="inline-input text-center no-print" value={item.cantidad || ''} onChange={e => updateItemRemision(item.id, 'cantidad', parseFloat(e.target.value) || 0)} style={{ width: '80%' }} />
-                          <span className="print-only">{item.cantidad}</span>
+                          <span className="print-only">{item.cantidad || ''}</span>
                         </>
                       ) : (
-                        <span>{item.cantidad}</span>
+                        <span>{item.cantidad || ''}</span>
                       )}
                     </td>
                     <td style={{ verticalAlign: 'top', padding: '0.5rem' }}>
@@ -1426,8 +1426,8 @@ export default function CotizacionPage() {
                 ))}
                 {Array.from({ length: Math.max(0, 20 - remisionItems.length) }).map((_, i) => (
                   <tr key={`empty-${i}`} className="print-only" style={{ height: '35px', borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ borderRight: '1px solid #e2e8f0' }}></td>
-                    <td></td>
+                    <td style={{ borderRight: '1px solid #e2e8f0', padding: '0.5rem' }}>&nbsp;</td>
+                    <td style={{ padding: '0.5rem' }}>&nbsp;</td>
                     <td className="no-print"></td>
                   </tr>
                 ))}
