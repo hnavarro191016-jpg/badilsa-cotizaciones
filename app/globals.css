@@ -232,6 +232,7 @@ body {
 .document-page {
   background: var(--doc-bg);
   width: 100%;
+  min-width: 800px;
   max-width: 850px;
   min-height: 1100px;
   margin: 2rem auto;
@@ -371,8 +372,11 @@ body {
 }
 
 .doc-terms {
-  margin-top: 2rem;
+  margin-top: 1rem;
   font-size: 0.875rem;
+}
+.doc-terms p {
+  margin: 0.25rem 0;
 }
 
 /* Inputs within document */
@@ -442,22 +446,5 @@ body {
   .history-row,
   .user-form {
     grid-template-columns: 1fr;
-  }
-
-  .document-page {
-    padding: 24px 18px;
-    margin-top: 1rem;
-  }
-
-  .doc-header,
-  .doc-company-info,
-  .doc-footer {
-    flex-direction: column;
-  }
-
-  .obs-block,
-  .totals-block {
-    max-width: none;
-    width: 100%;
   }
 }

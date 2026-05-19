@@ -142,7 +142,7 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
           <p>Dias de entrega<br />
             <span className="font-medium">{cotizacion.tiempoEntrega}</span>
           </p>
-          <p className="text-center" style={{ color: '#2563eb', marginTop: '1.5rem', textDecoration: 'underline' }}>www.badilsa.com</p>
+          <p className="text-center" style={{ color: '#2563eb', textDecoration: 'underline' }}>www.badilsa.com</p>
         </div>
       </div>
     </div>

@@ -1282,7 +1282,7 @@ export default function CotizacionPage() {
               <input className="inline-input font-medium no-print delivery-input" value={tiempoEntrega} onChange={(e) => setTiempoEntrega(e.target.value)} placeholder="Ej. 15 dias" />
               <span className="print-only">{tiempoEntrega}</span>
             </p>
-            <p className="text-center" style={{ color: '#2563eb', marginTop: '1.5rem', textDecoration: 'underline' }}>www.badilsa.com</p>
+            <p className="text-center" style={{ color: '#2563eb', textDecoration: 'underline' }}>www.badilsa.com</p>
           </div>
         </div>
       )}
