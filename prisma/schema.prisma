@@ -13,10 +13,11 @@ model User {
   username  String   @unique
   password  String
   role      String   @default("USER") // ADMIN or USER
-  nombre    String?
-  apellido  String?
-  telefono  String?
-  createdAt DateTime @default(now())
+  nombre                 String?
+  apellido               String?
+  telefono               String?
+  requiresPasswordChange Boolean  @default(true)
+  createdAt              DateTime @default(now())
 }
 
 model Cotizacion {

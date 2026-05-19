@@ -212,6 +212,13 @@ export default function CotizacionPage() {
   const [newTelefono, setNewTelefono] = useState('');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPasswordUpdate, setNewPasswordUpdate] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordChangeError, setPasswordChangeError] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   const [remisiones, setRemisiones] = useState<NotaRemisionData[]>([]);
   const [remisionFolio, setRemisionFolio] = useState('');
   const [remisionFecha, setRemisionFecha] = useState(todayInputValue());
@@ -321,7 +328,49 @@ export default function CotizacionPage() {
 
   const fetchCurrentUser = async () => {
     const res = await fetch('/api/auth/me');
-    if (res.ok) setCurrentUser(await res.json());
+    if (res.ok) {
+      const user = await res.json();
+      setCurrentUser(user);
+      if (user.requiresPasswordChange) {
+        setShowPasswordChangeModal(true);
+      }
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPasswordUpdate !== confirmNewPassword) {
+      setPasswordChangeError('Las contraseñas no coinciden');
+      return;
+    }
+    if (newPasswordUpdate.length < 6) {
+      setPasswordChangeError('La nueva contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
+    setIsChangingPassword(true);
+    setPasswordChangeError('');
+    
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword: newPasswordUpdate })
+    });
+    
+    setIsChangingPassword(false);
+    
+    if (!res.ok) {
+      const data = await res.json();
+      setPasswordChangeError(data.error || 'Error al cambiar la contraseña');
+      return;
+    }
+    
+    setShowPasswordChangeModal(false);
+    setCurrentPassword('');
+    setNewPasswordUpdate('');
+    setConfirmNewPassword('');
+    showMessage('Contraseña actualizada correctamente');
+    setCurrentUser(prev => prev ? { ...prev, requiresPasswordChange: false } : prev);
   };
 
   const fetchHistorial = async () => {
@@ -1589,6 +1638,36 @@ export default function CotizacionPage() {
           </div>
         </div>
       )}
+      
+      {showPasswordChangeModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '0.5rem', width: '100%', maxWidth: '400px' }}>
+            <h2 style={{ marginBottom: '1rem', color: '#1e293b' }}>Actualización Requerida</h2>
+            <p style={{ color: '#475569', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+              Por seguridad, debes cambiar tu contraseña temporal antes de continuar.
+            </p>
+            {passwordChangeError && <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '0.5rem', borderRadius: '0.25rem', marginBottom: '1rem', fontSize: '0.875rem' }}>{passwordChangeError}</div>}
+            <form onSubmit={handleChangePassword}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 'bold' }}>Contraseña Actual (Temporal)</label>
+                <input type="password" required className="input" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 'bold' }}>Nueva Contraseña</label>
+                <input type="password" required className="input" value={newPasswordUpdate} onChange={e => setNewPasswordUpdate(e.target.value)} />
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 'bold' }}>Confirmar Nueva Contraseña</label>
+                <input type="password" required className="input" value={confirmNewPassword} onChange={e => setConfirmNewPassword(e.target.value)} />
+              </div>
+              <button type="submit" className="btn btn-primary w-full" disabled={isChangingPassword} style={{ width: '100%' }}>
+                {isChangingPassword ? 'Cambiando...' : 'Cambiar Contraseña'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

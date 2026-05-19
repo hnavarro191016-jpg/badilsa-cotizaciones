@@ -32,6 +32,7 @@ export async function getCurrentUser() {
         nombre: true,
         apellido: true,
         telefono: true,
+        requiresPasswordChange: true,
         createdAt: true,
       },
     });
