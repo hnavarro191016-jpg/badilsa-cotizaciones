@@ -603,14 +603,15 @@ export default function CotizacionPage() {
       <body>
         <table>
           <tr>
-            <td colspan="2" class="title">ORDEN DE PRODUCCIÓN - ${cotizacion.folio}</td>
+            <td colspan="3" class="title">ORDEN DE PRODUCCIÓN - ${cotizacion.folio}</td>
           </tr>
           <tr>
-            <td colspan="2" style="font-weight:bold;">CLIENTE: ${cotizacion.empresa || 'N/A'}</td>
+            <td colspan="3" style="font-weight:bold;">CLIENTE: ${cotizacion.empresa || 'N/A'}</td>
           </tr>
-          <tr><td colspan="2"></td></tr>
+          <tr><td colspan="3"></td></tr>
           <tr>
             <td class="header" style="width: 80px;">CANT.</td>
+            <td class="header" style="width: 80px;">UNIDAD</td>
             <td class="header" style="width: 400px;">DESCRIPCIÓN</td>
           </tr>
     `;
@@ -619,6 +620,7 @@ export default function CotizacionPage() {
       tableHtml += `
         <tr>
           <td style="text-align:center; font-size: 14px;">${item.cantidad}</td>
+          <td style="text-align:center; font-size: 14px;">pzas</td>
           <td style="font-size: 14px;">${item.descripcion}</td>
         </tr>
       `;
