@@ -677,7 +677,7 @@ export default function CotizacionPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = \`Cotizacion_\${cotizacion.folio}.xls\`;
+    a.download = `Cotizacion_${cotizacion.folio}.xls`;
     a.click();
     URL.revokeObjectURL(url);
   };
