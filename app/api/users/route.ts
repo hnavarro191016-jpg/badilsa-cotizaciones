@@ -16,6 +16,7 @@ export async function GET() {
         nombre: true,
         apellido: true,
         telefono: true,
+        requiresPasswordChange: true,
         createdAt: true
       }
     });
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
     const data = await request.json();
-    const { username, password, role, nombre, apellido, telefono } = data;
+    const { username, password, role, nombre, apellido, telefono, requiresPasswordChange } = data;
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Usuario y contrasena son requeridos' }, { status: 400 });
@@ -60,7 +61,8 @@ export async function POST(request: Request) {
         role: safeRole,
         nombre: nombre || null,
         apellido: apellido || null,
-        telefono: telefono || null
+        telefono: telefono || null,
+        requiresPasswordChange: requiresPasswordChange !== undefined ? requiresPasswordChange : true
       },
       select: {
         id: true,
@@ -68,7 +70,8 @@ export async function POST(request: Request) {
         role: true,
         nombre: true,
         apellido: true,
-        telefono: true
+        telefono: true,
+        requiresPasswordChange: true
       }
     });
 
@@ -112,7 +115,7 @@ export async function PUT(request: Request) {
     if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
     const data = await request.json();
-    const { id, username, password, role, nombre, apellido, telefono } = data;
+    const { id, username, password, role, nombre, apellido, telefono, requiresPasswordChange } = data;
 
     if (!id || !username) {
       return NextResponse.json({ error: 'ID y usuario son requeridos' }, { status: 400 });
@@ -125,6 +128,10 @@ export async function PUT(request: Request) {
       apellido: apellido || null,
       telefono: telefono || null,
     };
+
+    if (requiresPasswordChange !== undefined) {
+      updateData.requiresPasswordChange = requiresPasswordChange;
+    }
 
     if (password && password.trim() !== '') {
       if (password.length < 6) {
@@ -143,6 +150,7 @@ export async function PUT(request: Request) {
         nombre: true,
         apellido: true,
         telefono: true,
+        requiresPasswordChange: true,
         createdAt: true
       }
     });

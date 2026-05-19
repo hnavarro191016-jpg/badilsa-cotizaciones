@@ -218,6 +218,7 @@ export default function CotizacionPage() {
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordChangeError, setPasswordChangeError] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newRequiresPasswordChange, setNewRequiresPasswordChange] = useState(true);
 
   const [remisiones, setRemisiones] = useState<NotaRemisionData[]>([]);
   const [remisionFolio, setRemisionFolio] = useState('');
@@ -761,7 +762,8 @@ export default function CotizacionPage() {
         role: newRole,
         nombre: newNombre,
         apellido: newApellido,
-        telefono: newTelefono
+        telefono: newTelefono,
+        requiresPasswordChange: newRequiresPasswordChange
       }),
     });
     const data = await res.json();
@@ -784,6 +786,7 @@ export default function CotizacionPage() {
     setNewNombre(user.nombre || '');
     setNewApellido(user.apellido || '');
     setNewTelefono(user.telefono || '');
+    setNewRequiresPasswordChange(false);
   };
 
   const cancelEditUser = () => {
@@ -794,6 +797,7 @@ export default function CotizacionPage() {
     setNewNombre('');
     setNewApellido('');
     setNewTelefono('');
+    setNewRequiresPasswordChange(true);
   };
 
   const deleteUser = async (user: UserData) => {
@@ -1226,6 +1230,10 @@ export default function CotizacionPage() {
               <option value="USER">Cotizador</option>
               <option value="ADMIN">Administrador</option>
             </select>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <input type="checkbox" id="reqPwdChange" checked={newRequiresPasswordChange} onChange={(e) => setNewRequiresPasswordChange(e.target.checked)} />
+              <label htmlFor="reqPwdChange" style={{ fontSize: '0.875rem', cursor: 'pointer' }}>Solicitar cambio de contraseña en el próximo inicio de sesión</label>
+            </div>
             <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
               {editingUserId && (
                 <button type="button" className="btn btn-outline" onClick={cancelEditUser}>
