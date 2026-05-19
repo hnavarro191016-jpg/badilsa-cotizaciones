@@ -585,7 +585,10 @@ export default function CotizacionPage() {
   const updateItem = (id: string, field: keyof Item, value: string | number) => {
     setItems((current) => current.map((item) => (
       item.id === id ? { ...item, [field]: value } : item
-    )));  const exportCotizacionExcel = (cotizacion: CotizacionData) => {
+    )));
+  };
+
+  const exportCotizacionExcel = (cotizacion: CotizacionData) => {
     let tableHtml = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
