@@ -198,6 +198,9 @@ export default function CotizacionPage() {
   const [items, setItems] = useState<Item[]>([emptyItem()]);
 
   const [historial, setHistorial] = useState<CotizacionData[]>([]);
+  const [historyFilterDate, setHistoryFilterDate] = useState('todas');
+  const [historyFilterStatus, setHistoryFilterStatus] = useState('todos');
+
   const [users, setUsers] = useState<UserData[]>([]);
   const [reportData, setReportData] = useState<any>(null);
   const [reportFilters, setReportFilters] = useState({ fechaInicio: '', fechaFin: '', empresa: '' });
@@ -233,6 +236,45 @@ export default function CotizacionPage() {
   );
   const iva = subTotal * 0.16;
   const total = subTotal + iva;
+
+  const filteredHistorial = useMemo(() => {
+    let result = historial;
+
+    if (historyFilterStatus !== 'todos') {
+      if (historyFilterStatus === 'PENDIENTE') {
+        result = result.filter(c => !c.estatusOC || c.estatusOC === 'PENDIENTE');
+      } else if (historyFilterStatus === 'RECIBIDA') {
+        result = result.filter(c => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA');
+      }
+    }
+
+    if (historyFilterDate !== 'todas') {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      result = result.filter(c => {
+        if (!c.fecha) return false;
+        const [year, month, day] = c.fecha.split('-');
+        const itemDate = new Date(Number(year), Number(month) - 1, Number(day));
+        itemDate.setHours(0, 0, 0, 0);
+        
+        if (historyFilterDate === 'hoy') {
+          return itemDate.getTime() === hoy.getTime();
+        } else if (historyFilterDate === 'semana') {
+          const diffTime = Math.abs(hoy.getTime() - itemDate.getTime());
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return diffDays <= 7;
+        } else if (historyFilterDate === 'mes') {
+          return itemDate.getMonth() === hoy.getMonth() && itemDate.getFullYear() === hoy.getFullYear();
+        } else if (historyFilterDate === 'anio') {
+          return itemDate.getFullYear() === hoy.getFullYear();
+        }
+        return true;
+      });
+    }
+
+    return result;
+  }, [historial, historyFilterDate, historyFilterStatus]);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -858,21 +900,46 @@ export default function CotizacionPage() {
 
           <EstatusOCDashboard historial={historial} />
 
-          <div className="panel-header">
-            <div>
-              <h2>Cotizaciones Pendientes</h2>
-              <p>{historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').length} cotizaciones en espera de OC</p>
+          <div className="panel-header" style={{ background: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              <div>
+                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Filtro de Fecha:</label>
+                <select className="input" value={historyFilterDate} onChange={(e) => setHistoryFilterDate(e.target.value)} style={{ padding: '0.5rem' }}>
+                  <option value="todas">Todas las Fechas</option>
+                  <option value="hoy">El Día de Hoy</option>
+                  <option value="semana">Últimos 7 Días</option>
+                  <option value="mes">Este Mes</option>
+                  <option value="anio">Este Año</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Filtro de Estatus:</label>
+                <select className="input" value={historyFilterStatus} onChange={(e) => setHistoryFilterStatus(e.target.value)} style={{ padding: '0.5rem' }}>
+                  <option value="todos">Todos los Estatus</option>
+                  <option value="PENDIENTE">Pendientes de OC</option>
+                  <option value="RECIBIDA">Completadas (OC Recibida)</option>
+                </select>
+              </div>
             </div>
             <button className="btn btn-primary" onClick={startNewCotizacion}>
               <Plus size={18} /> Nueva Cotizacion
             </button>
           </div>
 
-          <div className="history-table">
-            {historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').length === 0 ? (
-              <div className="empty-state">No hay cotizaciones pendientes.</div>
-            ) : (
-              historial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').map((cotizacion) => (
+          {(historyFilterStatus === 'todos' || historyFilterStatus === 'PENDIENTE') && (
+            <>
+              <div className="panel-header">
+                <div>
+                  <h2>Cotizaciones Pendientes</h2>
+                  <p>{filteredHistorial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').length} cotizaciones en espera de OC</p>
+                </div>
+              </div>
+
+              <div className="history-table">
+                {filteredHistorial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').length === 0 ? (
+                  <div className="empty-state">No hay cotizaciones pendientes para estos filtros.</div>
+                ) : (
+                  filteredHistorial.filter((c) => !c.estatusOC || c.estatusOC === 'PENDIENTE').map((cotizacion) => (
                 <div className="history-row" key={cotizacion.folio}>
                   <div>
                     <div className="font-bold" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -929,19 +996,23 @@ export default function CotizacionPage() {
               ))
             )}
           </div>
+          </>
+          )}
 
+          {(historyFilterStatus === 'todos' || historyFilterStatus === 'RECIBIDA') && (
+          <>
           <div className="panel-header" style={{ marginTop: '2rem' }}>
             <div>
               <h2>Cotizaciones Completadas</h2>
-              <p>{historial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').length} cotizaciones con OC recibida</p>
+              <p>{filteredHistorial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').length} cotizaciones con OC recibida</p>
             </div>
           </div>
 
           <div className="history-table">
-            {historial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').length === 0 ? (
-              <div className="empty-state">No hay cotizaciones completadas.</div>
+            {filteredHistorial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').length === 0 ? (
+              <div className="empty-state">No hay cotizaciones completadas para estos filtros.</div>
             ) : (
-              historial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').map((cotizacion) => (
+              filteredHistorial.filter((c) => c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA').map((cotizacion) => (
                 <div className="history-row" key={cotizacion.folio}>
                   <div>
                     <div className="font-bold" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -987,6 +1058,8 @@ export default function CotizacionPage() {
               ))
             )}
           </div>
+          </>
+          )}
           <input
             type="file"
             accept="application/pdf"
