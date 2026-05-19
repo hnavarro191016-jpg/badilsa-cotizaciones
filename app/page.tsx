@@ -588,6 +588,100 @@ export default function CotizacionPage() {
     )));
   };
 
+  const exportCotizacionExcel = (cotizacion: CotizacionData) => {
+    let tableHtml = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8" />
+        <style>
+          table { border-collapse: collapse; font-family: Arial, sans-serif; }
+          td { border: 1px solid #ccc; padding: 4px; }
+          .header { font-weight: bold; background-color: #3b82f6; color: white; text-align: center; }
+          .title { font-size: 16px; font-weight: bold; background-color: #bae6fd; }
+          .meta { font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <tr>
+            <td colspan="4" class="title">Cotización ${cotizacion.folio}</td>
+            <td colspan="2" style="text-align:right; font-weight:bold; color:#2563eb;">badilsa maquinados</td>
+          </tr>
+          <tr><td colspan="6" class="meta">BAAR361013-TU3</td></tr>
+          <tr><td colspan="6">Carretera AguaFria Km 1.5 Apodaca,NL. CP 66620</td></tr>
+          <tr><td colspan="6" style="color:blue; text-decoration:underline;">ventas@badilsa.com</td></tr>
+          <tr><td colspan="6"></td></tr>
+          <tr>
+            <td colspan="2" class="meta" style="background-color:#e2e8f0;">Atencion: ${cotizacion.atencion}</td>
+            <td colspan="4" class="meta" style="background-color:#e2e8f0; text-align:right;">fecha ${formatDisplayDate(cotizacion.fecha)}</td>
+          </tr>
+          <tr>
+            <td colspan="6" class="meta" style="background-color:#e2e8f0;">Empresa: ${cotizacion.empresa}</td>
+          </tr>
+          <tr><td colspan="6"></td></tr>
+          <tr><td colspan="6">Atencion a su solicitud, me permito enviarle la cotizacion correspondiente al servicio de su interes.</td></tr>
+          <tr><td colspan="6"></td></tr>
+          <tr>
+            <td class="header">Cant</td>
+            <td class="header">Unidad</td>
+            <td class="header">Descripcion</td>
+            <td class="header">Precio Unit.</td>
+            <td class="header">Total</td>
+            <td class="header" style="background-color:#f59e0b;">Atendido [ ]</td>
+          </tr>
+    `;
+
+    cotizacion.items.forEach(item => {
+      tableHtml += `
+        <tr>
+          <td style="text-align:center;">${item.cantidad}</td>
+          <td style="text-align:center;">${item.unidad}</td>
+          <td>${item.descripcion}</td>
+          <td style="text-align:right;">$ ${item.precioUnitario}</td>
+          <td style="text-align:right;">$ ${item.cantidad * item.precioUnitario / (item.valorDolar || 1)}</td>
+          <td style="text-align:center;"></td>
+        </tr>
+      `;
+    });
+
+    tableHtml += `
+          <tr><td colspan="6"></td></tr>
+          <tr>
+            <td colspan="3" rowspan="3" style="vertical-align:top;"><strong>OBSERVACIONES:</strong><br/>${cotizacion.observaciones || ''}</td>
+            <td class="meta" style="background-color:#bae6fd;">Sub-Total</td>
+            <td style="text-align:right; font-weight:bold;">$ ${cotizacion.subTotal}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="meta">IVA</td>
+            <td style="text-align:right; font-weight:bold;">$ ${cotizacion.iva}</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td class="meta" style="background-color:#bae6fd;">Total</td>
+            <td style="text-align:right; font-weight:bold;">$ ${cotizacion.total}</td>
+            <td></td>
+          </tr>
+          <tr><td colspan="6"></td></tr>
+          <tr><td colspan="6">Precios en <strong>${cotizacion.moneda}</strong></td></tr>
+          <tr><td colspan="6">Esperamos su orden de compra para programacion de fabricacion acorde al tiempo de entrega</td></tr>
+          <tr><td colspan="6">Tiempo de Entrega: <strong>${cotizacion.tiempoEntrega}</strong></td></tr>
+          <tr><td colspan="6"></td></tr>
+          <tr><td colspan="6" style="text-align:center; color:blue; text-decoration:underline;">www.badilsa.com</td></tr>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = \`Cotizacion_\${cotizacion.folio}.xls\`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const addItemRemision = () => setRemisionItems((current) => [
     ...current.map(item => ({ ...item, isEditing: false })), 
     emptyItemRemision()
@@ -859,6 +953,17 @@ export default function CotizacionPage() {
                           <Upload size={16} /> Subir OC
                         </button>
                       )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#16a34a', borderColor: '#16a34a' }} onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Hola, adjunto liga a su cotización:\n${window.location.origin}/cotizacion/ver/${cotizacion.id}`)}`, '_blank')}>
+                        WhatsApp
+                      </button>
+                      <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#475569', borderColor: '#cbd5e1' }} onClick={() => { window.location.href = `mailto:?subject=Cotización ${cotizacion.folio}&body=${encodeURIComponent(`Hola, puede ver su cotización en el siguiente enlace:\n\n${window.location.origin}/cotizacion/ver/${cotizacion.id}`)}`; }}>
+                        Correo
+                      </button>
+                      <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#059669', borderColor: '#059669' }} onClick={() => exportCotizacionExcel(cotizacion)}>
+                        <FileText size={16} /> Exportar Excel
+                      </button>
                     </div>
                   </div>
                 </div>
