@@ -862,7 +862,7 @@ export default function CotizacionPage() {
     <div className="app-container">
       <aside className="app-sidebar no-print">
         <div className="sidebar-logo">
-          <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '140px' }} />
+          <img src="/logo.png" alt="Badilsa Logo" style={{ width: '100%', maxWidth: '200px', objectFit: 'contain' }} />
         </div>
         <div className="sidebar-menu">
           <div className="sidebar-menu-title">Menú Principal</div>
