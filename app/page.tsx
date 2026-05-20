@@ -860,13 +860,51 @@ export default function CotizacionPage() {
 
   return (
     <div className="app-container">
-      <div className="toolbar no-print">
-        <div className="toolbar-content">
-          <h1 className="text-xl font-bold">Badilsa Cotizaciones</h1>
-          <div className="flex gap-2">
-            <button className="btn btn-outline" onClick={handleLogout} style={{ color: '#ef4444', borderColor: '#ef4444' }}>
-              <LogOut size={18} /> Salir
+      <aside className="app-sidebar no-print">
+        <div className="sidebar-logo">
+          <img src="/logo.png" alt="Badilsa Logo" style={{ maxWidth: '140px' }} />
+        </div>
+        <div className="sidebar-menu">
+          <div className="sidebar-menu-title">Menú Principal</div>
+          <button className={`sidebar-link ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => setActiveTab('inicio')}>
+            <Home size={18} /> Inicio
+          </button>
+          <button className={`sidebar-link ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+            <History size={18} /> Historial
+          </button>
+          <button className={`sidebar-link ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={startNewCotizacion}>
+            <Plus size={18} /> Nueva Cotización
+          </button>
+          <button className={`sidebar-link ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={() => { setActiveTab('remisiones'); setCurrentRemisionId(null); setMode('edit'); }}>
+            <FileText size={18} /> Notas de Remisión
+          </button>
+          <button className={`sidebar-link ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
+            <PieChart size={18} /> Reportes
+          </button>
+          {currentUser?.role === 'ADMIN' && (
+            <button className={`sidebar-link ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
+              <UserPlus size={18} /> Usuarios
             </button>
+          )}
+        </div>
+        <div className="sidebar-footer">
+          <button className="sidebar-link" onClick={handleLogout} style={{ color: '#ef4444' }}>
+            <LogOut size={18} /> Cerrar Sesión
+          </button>
+        </div>
+      </aside>
+
+      <main className="app-main-content">
+        <div className="toolbar no-print">
+          <h1 className="text-xl font-bold" style={{ color: '#1e293b' }}>
+            {activeTab === 'inicio' && 'Inicio'}
+            {activeTab === 'historial' && 'Historial'}
+            {activeTab === 'cotizacion' && 'Cotización'}
+            {activeTab === 'remisiones' && 'Notas de Remisión'}
+            {activeTab === 'reportes' && 'Reportes'}
+            {activeTab === 'usuarios' && 'Usuarios'}
+          </h1>
+          <div className="flex gap-2">
             {(activeTab === 'cotizacion' || activeTab === 'remisiones') && (
               <button className="btn btn-outline" onClick={handlePrint}>
                 <Printer size={18} /> Imprimir PDF
@@ -885,49 +923,25 @@ export default function CotizacionPage() {
             {activeTab === 'cotizacion' && (
               <button className="btn btn-primary" onClick={saveCotizacion} disabled={isSaving}>
                 {message ? <Check size={18} /> : <Save size={18} />}
-                {isSaving ? 'Guardando...' : 'Guardar Cotizacion'}
+                {isSaving ? 'Guardando...' : 'Guardar Cotización'}
               </button>
             )}
             {activeTab === 'remisiones' && (
               <button className="btn btn-primary" onClick={saveRemision} disabled={isSaving}>
                 {message ? <Check size={18} /> : <Save size={18} />}
-                {isSaving ? 'Guardando...' : 'Guardar Remision'}
+                {isSaving ? 'Guardando...' : 'Guardar Remisión'}
               </button>
             )}
           </div>
         </div>
-      </div>
 
-      <div className="main-shell no-print">
-        <div className="tabs">
-          <button className={`tab-button ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => setActiveTab('inicio')}>
-            <Home size={18} /> Inicio
-          </button>
-          <button className={`tab-button ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
-            <History size={18} /> Historial
-          </button>
-          <button className={`tab-button ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={startNewCotizacion}>
-            <Plus size={18} /> Generar Nueva Cotizacion
-          </button>
-          <button className={`tab-button ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
-            <PieChart size={18} /> Reportes
-          </button>
-          <button className={`tab-button ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={() => { setActiveTab('remisiones'); setCurrentRemisionId(null); setMode('edit'); }}>
-            <FileText size={18} /> Notas de Remisión
-          </button>
-          {currentUser?.role === 'ADMIN' && (
-            <button className={`tab-button ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
-              <UserPlus size={18} /> Usuarios
-            </button>
+        <div className="main-shell no-print" style={{ marginTop: '0', paddingTop: '1.5rem' }}>
+          {(message || error) && (
+            <div className={`status-message ${error ? 'error' : 'success'}`}>
+              {error || message}
+            </div>
           )}
         </div>
-
-        {(message || error) && (
-          <div className={`status-message ${error ? 'error' : 'success'}`}>
-            {error || message}
-          </div>
-        )}
-      </div>
 
       {activeTab === 'inicio' && (
         <section className="panel-page no-print" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
@@ -1675,6 +1689,7 @@ export default function CotizacionPage() {
           </div>
         </div>
       )}
+      </main>
 
     </div>
   );
