@@ -239,8 +239,11 @@ export default function CotizacionPage() {
   const [error, setError] = useState('');
 
   const subTotal = useMemo(
-    () => items.reduce((acc, item) => acc + item.cantidad * item.precioUnitario / (item.valorDolar || 1), 0),
-    [items]
+    () => items.reduce((acc, item) => {
+      const divisor = moneda === 'DOLARES' ? (item.valorDolar || 1) : 1;
+      return acc + (item.cantidad * item.precioUnitario / divisor);
+    }, 0),
+    [items, moneda]
   );
   const iva = subTotal * 0.16;
   const total = subTotal + iva;
@@ -1417,10 +1420,10 @@ export default function CotizacionPage() {
                         <>
                           <span className="currency-prefix no-print">$</span>
                           <input type="number" className="inline-input text-right no-print" value={item.precioUnitario === 0 ? '' : item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', e.target.value === '' ? 0 : parseFloat(e.target.value))} style={{ width: '70px' }} onFocus={(e) => e.target.select()} />
-                          <span className="print-only">$ {formatNumber(item.precioUnitario)}</span>
+                          <span className="print-only">$ {formatNumber(item.precioUnitario / (moneda === 'DOLARES' ? (item.valorDolar || 1) : 1))}</span>
                         </>
                       ) : (
-                        <span>$ {formatNumber(item.precioUnitario)}</span>
+                        <span>$ {formatNumber(item.precioUnitario / (moneda === 'DOLARES' ? (item.valorDolar || 1) : 1))}</span>
                       )}
                     </td>
                     <td className="no-print text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
@@ -1431,7 +1434,7 @@ export default function CotizacionPage() {
                       )}
                     </td>
                     <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem', whiteSpace: 'nowrap' }}>
-                      $ {formatNumber(item.cantidad * item.precioUnitario / (item.valorDolar || 1))}
+                      $ {formatNumber(item.cantidad * item.precioUnitario / (moneda === 'DOLARES' ? (item.valorDolar || 1) : 1))}
                     </td>
                     <td className="no-print text-center" style={{ verticalAlign: 'top', paddingTop: '0.25rem' }}>
                       <button className="btn btn-outline" style={{ padding: '0.3rem', marginRight: '0.25rem', borderColor: 'transparent', minWidth: 'auto' }} onClick={() => toggleEditItem(item.id)} title={item.isEditing ? "Guardar Concepto" : "Modificar Concepto"}>
