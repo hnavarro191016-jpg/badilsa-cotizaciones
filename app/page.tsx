@@ -1398,7 +1398,7 @@ export default function CotizacionPage() {
                         <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.descripcion}</div>
                       )}
                     </td>
-                    <td className="text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                    <td className="text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem', whiteSpace: 'nowrap' }}>
                       {item.isEditing ? (
                         <>
                           <span className="currency-prefix no-print">$</span>
@@ -1416,7 +1416,7 @@ export default function CotizacionPage() {
                         <span>{item.valorDolar}</span>
                       )}
                     </td>
-                    <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
+                    <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem', whiteSpace: 'nowrap' }}>
                       $ {formatNumber(item.cantidad * item.precioUnitario / (item.valorDolar || 1))}
                     </td>
                     <td className="no-print text-center" style={{ verticalAlign: 'top', paddingTop: '0.25rem' }}>

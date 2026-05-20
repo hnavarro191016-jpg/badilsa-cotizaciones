@@ -335,7 +335,8 @@ body {
 }
 
 .totals-block {
-  width: 35%;
+  width: max-content;
+  min-width: 35%;
   background-color: var(--gray-light);
   padding: 1rem;
   -webkit-print-color-adjust: exact;
@@ -365,10 +366,12 @@ body {
   print-color-adjust: exact;
 }
 .total-value {
-  width: 100px;
+  width: auto;
+  min-width: 120px;
   text-align: right;
   font-family: monospace;
   font-size: 1rem;
+  white-space: nowrap;
 }
 
 .doc-terms {
