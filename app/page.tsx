@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'reportes' | 'remisiones';
+type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'reportes' | 'remisiones' | 'facturacion';
 type Mode = 'new' | 'edit';
 
 interface Item {
@@ -884,6 +884,9 @@ export default function CotizacionPage() {
           <button className={`sidebar-link ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
             <PieChart size={18} /> Reportes
           </button>
+          <button className={`sidebar-link ${activeTab === 'facturacion' ? 'active' : ''}`} onClick={() => setActiveTab('facturacion')}>
+            <DollarSign size={18} /> Facturación
+          </button>
           {currentUser?.role === 'ADMIN' && (
             <button className={`sidebar-link ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
               <UserPlus size={18} /> Usuarios
@@ -905,6 +908,7 @@ export default function CotizacionPage() {
             {activeTab === 'cotizacion' && 'Cotización'}
             {activeTab === 'remisiones' && 'Notas de Remisión'}
             {activeTab === 'reportes' && 'Reportes'}
+            {activeTab === 'facturacion' && 'Facturación'}
             {activeTab === 'usuarios' && 'Usuarios'}
           </h1>
           <div className="flex gap-2">
@@ -1225,6 +1229,21 @@ export default function CotizacionPage() {
               </div>
             </div>
           )}
+        </section>
+      )}
+
+      {activeTab === 'facturacion' && (
+        <section className="panel-page no-print" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center', borderRadius: '12px', marginTop: '2rem' }}>
+          <div style={{ background: '#eff6ff', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
+            <DollarSign size={48} style={{ color: '#2563eb' }} />
+          </div>
+          <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>Módulo de Facturación</h2>
+          <p style={{ fontSize: '1.1rem', color: '#475569', maxWidth: '650px', lineHeight: '1.6' }}>
+            Estamos construyendo algo increíble para ti. Muy pronto podrás importar tus facturas (XML/PDF), generar tu propia base de datos de cobranza, monitorear los días de crédito de tus clientes y recibir alertas en rojo para pagos atrasados.
+          </p>
+          <div style={{ marginTop: '2rem', display: 'inline-block', padding: '0.75rem 2rem', background: '#f1f5f9', borderRadius: '999px', color: '#334155', fontWeight: '600', letterSpacing: '0.05em' }}>
+            PRÓXIMAMENTE
+          </div>
         </section>
       )}
 
