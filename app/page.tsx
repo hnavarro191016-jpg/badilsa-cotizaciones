@@ -4,6 +4,7 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
 type ActiveTab = 'inicio' | 'historial' | 'cotizacion' | 'usuarios' | 'reportes' | 'remisiones' | 'facturacion';
 type Mode = 'new' | 'edit';
@@ -1168,7 +1169,7 @@ export default function CotizacionPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               {/* KPIs Principales */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                   <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Total Cotizaciones</div>
                   <div style={{ fontSize: '2rem', fontWeight: '800', color: '#0f172a' }}>{reportData.resumen.totalCotizaciones}</div>
@@ -1187,20 +1188,88 @@ export default function CotizacionPage() {
                   </div>
                 </div>
 
-                <div style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)', padding: '1.5rem', borderRadius: '1rem', color: 'white', boxShadow: '0 10px 15px -3px rgba(79,70,229,0.3)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 'bold', textTransform: 'uppercase', opacity: 0.9 }}>Tasa de Conversión</div>
-                    <Target size={20} style={{ opacity: 0.8 }} />
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Tasa de Conversión</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '800', color: '#4f46e5' }}>{reportData.resumen.conversionPorcentaje}%</div>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.5rem', fontWeight: '500' }}>
+                    {reportData.resumen.cotizacionesSinOC} sin OC
                   </div>
-                  <div style={{ fontSize: '2rem', fontWeight: '800' }}>{reportData.resumen.conversionPorcentaje}%</div>
-                  <div style={{ fontSize: '0.875rem', marginTop: '0.5rem', opacity: 0.9 }}>{reportData.resumen.cotizacionesSinOC} cotizaciones sin OC</div>
+                </div>
+
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Tiempo de Cierre</div>
+                  <div style={{ fontSize: '2rem', fontWeight: '800', color: '#f59e0b' }}>{reportData.resumen.promedioCierreDias} <span style={{fontSize: '1rem'}}>días</span></div>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.5rem', fontWeight: '500' }}>
+                    Promedio Cotización a OC
+                  </div>
                 </div>
               </div>
 
-              {/* Clientes */}
+              {/* Gráficas */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#0f172a' }}>Tendencia de Ventas (Cotizado vs Cerrado)</h3>
+                  <div style={{ height: '300px', width: '100%' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={reportData.graficas.tendenciaMensual} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} tickFormatter={(value) => `$${(value/1000)}k`} />
+                        <RechartsTooltip cursor={{fill: '#f1f5f9'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} formatter={(value: number) => [`$${formatNumber(value)}`, '']} />
+                        <Legend iconType="circle" />
+                        <Bar dataKey="cotizado" name="Monto Cotizado" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={30} />
+                        <Bar dataKey="cerrado" name="Monto Cerrado (OC)" fill="#10b981" radius={[4, 4, 0, 0]} barSize={30} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1.5rem', color: '#0f172a' }}>Distribución de Estatus</h3>
+                  <div style={{ height: '300px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsPieChart>
+                        <Pie
+                          data={reportData.graficas.distribucionEstatus}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {reportData.graficas.distribucionEstatus.map((entry: any, index: number) => (
+                            <Cell key={`cell-${index}`} fill={entry.name === 'Con Orden' ? '#10b981' : '#f59e0b'} />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} />
+                        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                      </RechartsPieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tablas Inferiores */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><DollarSign size={18} color="#16a34a" /> Top 5 Clientes por Monto</h3>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} color="#4f46e5" /> Top Vendedores</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {reportData.analitica.vendedores.length === 0 && <p className="text-gray text-sm">No hay datos</p>}
+                    {reportData.analitica.vendedores.map((v: any, i: number) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
+                        <div>
+                          <span style={{ fontWeight: '600', color: '#334155', display: 'block' }}>{v.nombre}</span>
+                          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Tasa: {v.tasa}%</span>
+                        </div>
+                        <span style={{ fontWeight: 'bold', color: '#16a34a' }}>${formatNumber(v.montoVendido)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><DollarSign size={18} color="#16a34a" /> Top Clientes</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                     {reportData.clientes.topMonto.length === 0 && <p className="text-gray text-sm">No hay datos</p>}
                     {reportData.clientes.topMonto.map((c: any, i: number) => (
@@ -1214,14 +1283,15 @@ export default function CotizacionPage() {
                     ))}
                   </div>
                 </div>
+
                 <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Users size={18} color="#0284c7" /> Top 5 Clientes por Volumen</h3>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Target size={18} color="#f59e0b" /> Top Servicios</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {reportData.clientes.topCotizaciones.length === 0 && <p className="text-gray text-sm">No hay datos</p>}
-                    {reportData.clientes.topCotizaciones.map((c: any, i: number) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
-                        <span style={{ fontWeight: '500', color: '#334155' }}>{c.nombre || 'Desconocido'}</span>
-                        <span style={{ fontWeight: 'bold', color: '#0284c7' }}>{c.cantidad} cotizaciones</span>
+                    {reportData.analitica.servicios.length === 0 && <p className="text-gray text-sm">No hay datos</p>}
+                    {reportData.analitica.servicios.map((s: any, i: number) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
+                        <span style={{ fontWeight: '500', color: '#334155', textTransform: 'capitalize' }}>{s.nombre}</span>
+                        <span style={{ fontWeight: 'bold', color: '#0f172a', background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', fontSize: '0.85rem' }}>{s.cantidad}</span>
                       </div>
                     ))}
                   </div>
