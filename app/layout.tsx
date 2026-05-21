@@ -1,16 +1,21 @@
 import './globals.css'
 import type { Metadata } from 'next'
 
+import type { Viewport } from 'next'
+
 export const metadata: Metadata = {
   title: 'Badilsa - Cotizaciones',
   description: 'Sistema de cotizaciones para Badilsa Maquinados',
   manifest: '/manifest.json',
-  themeColor: '#2563eb',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Badilsa',
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#2563eb',
 }
 
 import InactivityTimer from '@/components/InactivityTimer'
