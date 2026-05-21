@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   },
 }
 
+import InactivityTimer from '@/components/InactivityTimer'
+
 export default function RootLayout({
   children,
 }: {
@@ -21,6 +23,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <InactivityTimer />
         {children}
         <script
           dangerouslySetInnerHTML={{

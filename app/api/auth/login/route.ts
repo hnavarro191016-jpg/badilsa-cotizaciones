@@ -43,13 +43,12 @@ export async function POST(request: Request) {
       .setExpirationTime('24h')
       .sign(JWT_SECRET);
 
-    // Set cookie
+    // Set cookie as session cookie (no maxAge)
     const response = NextResponse.json({ success: true });
     response.cookies.set('badilsa_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24, // 24 hours
       path: '/',
     });
 
