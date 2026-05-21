@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Paths that do not require authentication
-  const isPublicPath = path === '/login' || path.startsWith('/api/auth') || path.startsWith('/cotizacion/ver');
+  const isPublicPath = path === '/login' || path === '/register' || path === '/forgot-password' || path.startsWith('/api/auth') || path.startsWith('/cotizacion/ver');
 
   // Paths to exclude entirely from middleware checks
   if (path.startsWith('/_next') || path.includes('/favicon.ico') || path.endsWith('.png') || path.endsWith('.jpg')) {
