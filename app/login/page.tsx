@@ -101,6 +101,15 @@ export default function LoginPage() {
           >
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', fontSize: '0.875rem' }}>
+            <button type="button" onClick={() => router.push('/forgot-password')} style={{ background: 'none', border: 'none', color: '#2563eb', cursor: 'pointer', padding: 0, fontWeight: 500 }}>
+              ¿Olvidaste tu contraseña?
+            </button>
+            <button type="button" onClick={() => router.push('/register')} style={{ background: 'none', border: 'none', color: '#16a34a', cursor: 'pointer', padding: 0, fontWeight: 600 }}>
+              Crear Cuenta
+            </button>
+          </div>
         </form>
 
       </div>

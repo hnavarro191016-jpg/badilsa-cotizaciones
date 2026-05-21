@@ -16,6 +16,8 @@ export async function GET() {
         nombre: true,
         apellido: true,
         telefono: true,
+        email: true,
+        estatus: true,
         requiresPasswordChange: true,
         createdAt: true
       }
@@ -33,7 +35,7 @@ export async function POST(request: Request) {
     if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
     const data = await request.json();
-    const { username, password, role, nombre, apellido, telefono, requiresPasswordChange } = data;
+    const { username, password, role, nombre, apellido, telefono, email, estatus, requiresPasswordChange } = data;
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Usuario y contrasena son requeridos' }, { status: 400 });
@@ -62,6 +64,8 @@ export async function POST(request: Request) {
         nombre: nombre || null,
         apellido: apellido || null,
         telefono: telefono || null,
+        email: email || null,
+        estatus: estatus || 'ACTIVO',
         requiresPasswordChange: requiresPasswordChange !== undefined ? requiresPasswordChange : true
       },
       select: {
@@ -71,6 +75,8 @@ export async function POST(request: Request) {
         nombre: true,
         apellido: true,
         telefono: true,
+        email: true,
+        estatus: true,
         requiresPasswordChange: true
       }
     });
@@ -115,7 +121,7 @@ export async function PUT(request: Request) {
     if (!admin) return NextResponse.json({ error: 'No autorizado' }, { status: 403 });
 
     const data = await request.json();
-    const { id, username, password, role, nombre, apellido, telefono, requiresPasswordChange } = data;
+    const { id, username, password, role, nombre, apellido, telefono, email, estatus, requiresPasswordChange } = data;
 
     if (!id || !username) {
       return NextResponse.json({ error: 'ID y usuario son requeridos' }, { status: 400 });
@@ -127,7 +133,12 @@ export async function PUT(request: Request) {
       nombre: nombre || null,
       apellido: apellido || null,
       telefono: telefono || null,
+      email: email || null,
     };
+
+    if (estatus) {
+      updateData.estatus = estatus;
+    }
 
     if (requiresPasswordChange !== undefined) {
       updateData.requiresPasswordChange = requiresPasswordChange;
@@ -150,6 +161,8 @@ export async function PUT(request: Request) {
         nombre: true,
         apellido: true,
         telefono: true,
+        email: true,
+        estatus: true,
         requiresPasswordChange: true,
         createdAt: true
       }

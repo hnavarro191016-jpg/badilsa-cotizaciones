@@ -47,6 +47,8 @@ interface UserData {
   nombre?: string | null;
   apellido?: string | null;
   telefono?: string | null;
+  email?: string | null;
+  estatus?: string;
   createdAt?: string;
 }
 
@@ -819,6 +821,25 @@ export default function CotizacionPage() {
     showMessage('Usuario eliminado.');
   };
 
+  const handleUserStatus = async (user: UserData, newEstatus: string) => {
+    if (newEstatus === 'RECHAZADO' && !window.confirm(`¿Seguro que deseas rechazar al usuario ${user.username}?`)) return;
+
+    const res = await fetch('/api/users', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: user.id, username: user.username, estatus: newEstatus })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.error || 'Error al actualizar estatus');
+      return;
+    }
+
+    await fetchUsers();
+    showMessage(`Usuario ${newEstatus === 'ACTIVO' ? 'Aprobado' : 'Rechazado'} correctamente.`);
+  };
+
   const handleLogout = async () => {
     await fetch('/api/auth/login', { method: 'DELETE' });
     router.push('/login');
@@ -895,6 +916,16 @@ export default function CotizacionPage() {
           )}
         </div>
         <div className="sidebar-footer">
+          {currentUser && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem', marginBottom: '0.5rem', background: '#f8fafc', borderRadius: '0.5rem', border: '1px solid #e2e8f0' }}>
+              <div style={{ background: '#3b82f6', color: 'white', width: '24px', height: '24px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                {currentUser.username.substring(0, 2).toUpperCase()}
+              </div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {currentUser.username}
+              </div>
+            </div>
+          )}
           <button className="sidebar-link" onClick={handleLogout} style={{ color: '#ef4444' }}>
             <LogOut size={18} /> Cerrar Sesión
           </button>
@@ -1352,12 +1383,44 @@ export default function CotizacionPage() {
             </div>
           </form>
 
+          {users.filter(u => u.estatus === 'PENDIENTE').length > 0 && (
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ fontSize: '1.2rem', color: '#b45309', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', background: '#f59e0b' }}></span>
+                Solicitudes Pendientes de Aprobación
+              </h3>
+              <div className="history-table" style={{ border: '1px solid #fcd34d' }}>
+                {users.filter(u => u.estatus === 'PENDIENTE').map((user) => (
+                  <div className="history-row" key={user.id} style={{ background: '#fffbeb' }}>
+                    <div>
+                      <div className="font-bold">{user.username} <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#b45309', background: '#fef3c7', padding: '2px 6px', borderRadius: '4px' }}>Pendiente</span></div>
+                      <div className="text-sm text-gray">
+                        {user.nombre || user.apellido ? `${user.nombre || ''} ${user.apellido || ''} ` : ''} 
+                        {user.email ? `| ${user.email} ` : ''} 
+                        {user.telefono ? `| ${user.telefono}` : ''}
+                      </div>
+                    </div>
+                    <div className="history-actions" style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button className="btn btn-outline" style={{ color: '#16a34a', borderColor: '#16a34a' }} onClick={() => handleUserStatus(user, 'ACTIVO')}>
+                        <Check size={16} /> Aprobar
+                      </button>
+                      <button className="btn btn-outline" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => handleUserStatus(user, 'RECHAZADO')}>
+                        <Trash2 size={16} /> Rechazar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <h3 style={{ fontSize: '1.2rem', color: '#0f172a', marginBottom: '1rem' }}>Usuarios Activos</h3>
           <div className="history-table">
-            {users.map((user) => (
+            {users.filter(u => u.estatus !== 'PENDIENTE').map((user) => (
               <div className="history-row" key={user.id}>
                 <div>
-                  <div className="font-bold">{user.username}</div>
-                  <div className="text-sm text-gray">{user.role === 'ADMIN' ? 'Administrador' : 'Cotizador'} {user.nombre || user.apellido ? `| ${user.nombre || ''} ${user.apellido || ''}` : ''}</div>
+                  <div className="font-bold">{user.username} {user.estatus === 'RECHAZADO' && <span style={{ fontSize: '0.75rem', fontWeight: 'normal', color: '#ef4444', background: '#fef2f2', padding: '2px 6px', borderRadius: '4px', marginLeft: '0.5rem' }}>Rechazado</span>}</div>
+                  <div className="text-sm text-gray">{user.role === 'ADMIN' ? 'Administrador' : 'Cotizador'} {user.nombre || user.apellido ? `| ${user.nombre || ''} ${user.apellido || ''}` : ''} {user.email ? `| ${user.email}` : ''}</div>
                 </div>
                 <div className="history-actions" style={{ display: 'flex', gap: '0.5rem' }}>
                   <button className="btn btn-outline" onClick={() => handleEditUser(user)}>

@@ -16,6 +16,12 @@ model User {
   nombre                 String?
   apellido               String?
   telefono               String?
+  email                  String?
+  estatus                String   @default("ACTIVO") // PENDIENTE, ACTIVO, RECHAZADO
+  preguntaSecreta1       String?
+  respuestaSecreta1      String?
+  preguntaSecreta2       String?
+  respuestaSecreta2      String?
   requiresPasswordChange Boolean  @default(true)
   createdAt              DateTime @default(now())
 }

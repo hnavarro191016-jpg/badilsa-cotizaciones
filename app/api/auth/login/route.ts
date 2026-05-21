@@ -23,6 +23,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 });
     }
 
+    if (user.estatus === 'PENDIENTE') {
+      return NextResponse.json({ error: 'Tu cuenta está pendiente de aprobación por el administrador.' }, { status: 403 });
+    }
+
+    if (user.estatus === 'RECHAZADO') {
+      return NextResponse.json({ error: 'Tu cuenta ha sido rechazada o suspendida.' }, { status: 403 });
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (!passwordMatch) {
