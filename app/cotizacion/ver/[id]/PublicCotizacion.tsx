@@ -104,10 +104,10 @@ export default function PublicCotizacion({ cotizacion }: { cotizacion: any }) {
                     <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{item.descripcion}</div>
                   </td>
                   <td className="text-right" style={{ verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                    $ {item.precioUnitario.toFixed(2)}
+                    $ {formatNumber(item.precioUnitario / (cotizacion.moneda === 'DOLARES' ? (item.valorDolar || 1) : 1))}
                   </td>
                   <td className="text-right" style={{ paddingRight: '0.5rem', verticalAlign: 'top', paddingTop: '0.5rem' }}>
-                    $ {formatNumber(item.cantidad * item.precioUnitario / (item.valorDolar || 1))}
+                    $ {formatNumber(item.cantidad * item.precioUnitario / (cotizacion.moneda === 'DOLARES' ? (item.valorDolar || 1) : 1))}
                   </td>
                 </tr>
               ))}

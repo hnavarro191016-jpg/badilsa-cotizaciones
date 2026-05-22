@@ -1571,7 +1571,18 @@ export default function CotizacionPage() {
                       {item.isEditing ? (
                         <>
                           <span className="currency-prefix no-print">$</span>
-                          <input type="number" className="inline-input text-right no-print" value={item.precioUnitario === 0 ? '' : item.precioUnitario} onChange={(e) => updateItem(item.id, 'precioUnitario', e.target.value === '' ? 0 : parseFloat(e.target.value))} style={{ width: '70px' }} onFocus={(e) => e.target.select()} />
+                          <input 
+                            type="number" 
+                            className="inline-input text-right no-print" 
+                            value={item.precioUnitario === 0 ? '' : (moneda === 'DOLARES' && (item.valorDolar || 1) > 1 ? Number((item.precioUnitario / item.valorDolar).toFixed(2)) : item.precioUnitario)} 
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                              const finalVal = (moneda === 'DOLARES' && (item.valorDolar || 1) > 1) ? val * item.valorDolar : val;
+                              updateItem(item.id, 'precioUnitario', finalVal);
+                            }} 
+                            style={{ width: '70px' }} 
+                            onFocus={(e) => e.target.select()} 
+                          />
                           <span className="print-only">$ {formatNumber(item.precioUnitario / (moneda === 'DOLARES' ? (item.valorDolar || 1) : 1))}</span>
                         </>
                       ) : (
