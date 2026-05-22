@@ -129,12 +129,12 @@ export async function PUT(request: Request) {
 
     const updateData: any = {
       username,
-      role: role === 'ADMIN' ? 'ADMIN' : 'USER',
-      nombre: nombre || null,
-      apellido: apellido || null,
-      telefono: telefono || null,
-      email: email || null,
     };
+    if (role) updateData.role = role === 'ADMIN' ? 'ADMIN' : 'USER';
+    if (nombre !== undefined) updateData.nombre = nombre || null;
+    if (apellido !== undefined) updateData.apellido = apellido || null;
+    if (telefono !== undefined) updateData.telefono = telefono || null;
+    if (email !== undefined) updateData.email = email || null;
 
     if (estatus) {
       updateData.estatus = estatus;

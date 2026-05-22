@@ -821,13 +821,16 @@ export default function CotizacionPage() {
     showMessage('Usuario eliminado.');
   };
 
-  const handleUserStatus = async (user: UserData, newEstatus: string) => {
+  const handleUserStatus = async (user: UserData, newEstatus: string, role?: string) => {
     if (newEstatus === 'RECHAZADO' && !window.confirm(`¿Seguro que deseas rechazar al usuario ${user.username}?`)) return;
+
+    const payload: any = { id: user.id, username: user.username, estatus: newEstatus };
+    if (role) payload.role = role;
 
     const res = await fetch('/api/users', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: user.id, username: user.username, estatus: newEstatus })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
 
@@ -903,16 +906,18 @@ export default function CotizacionPage() {
           <button className={`sidebar-link ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={() => { setActiveTab('remisiones'); setCurrentRemisionId(null); setMode('edit'); }}>
             <FileText size={18} /> Notas de Remisión
           </button>
-          <button className={`sidebar-link ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
-            <PieChart size={18} /> Reportes
-          </button>
-          <button className={`sidebar-link ${activeTab === 'facturacion' ? 'active' : ''}`} onClick={() => setActiveTab('facturacion')}>
-            <DollarSign size={18} /> Facturación
-          </button>
           {currentUser?.role === 'ADMIN' && (
-            <button className={`sidebar-link ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
-              <UserPlus size={18} /> Usuarios
-            </button>
+            <>
+              <button className={`sidebar-link ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
+                <PieChart size={18} /> Reportes
+              </button>
+              <button className={`sidebar-link ${activeTab === 'facturacion' ? 'active' : ''}`} onClick={() => setActiveTab('facturacion')}>
+                <DollarSign size={18} /> Facturación
+              </button>
+              <button className={`sidebar-link ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
+                <UserPlus size={18} /> Usuarios
+              </button>
+            </>
           )}
         </div>
         <div className="sidebar-footer">
@@ -1400,9 +1405,12 @@ export default function CotizacionPage() {
                         {user.telefono ? `| ${user.telefono}` : ''}
                       </div>
                     </div>
-                    <div className="history-actions" style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn btn-outline" style={{ color: '#16a34a', borderColor: '#16a34a' }} onClick={() => handleUserStatus(user, 'ACTIVO')}>
-                        <Check size={16} /> Aprobar
+                    <div className="history-actions" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      <button className="btn btn-outline" style={{ color: '#16a34a', borderColor: '#16a34a' }} onClick={() => handleUserStatus(user, 'ACTIVO', 'USER')}>
+                        <Check size={16} /> Aprobar (Cotizador)
+                      </button>
+                      <button className="btn btn-outline" style={{ color: '#2563eb', borderColor: '#2563eb' }} onClick={() => handleUserStatus(user, 'ACTIVO', 'ADMIN')}>
+                        <Check size={16} /> Aprobar (Admin)
                       </button>
                       <button className="btn btn-outline" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => handleUserStatus(user, 'RECHAZADO')}>
                         <Trash2 size={16} /> Rechazar
