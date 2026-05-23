@@ -13,7 +13,14 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = path === '/login' || path === '/register' || path === '/forgot-password' || path.startsWith('/api/auth') || path.startsWith('/cotizacion/ver');
 
   // Paths to exclude entirely from middleware checks
-  if (path.startsWith('/_next') || path.includes('/favicon.ico') || path.endsWith('.png') || path.endsWith('.jpg')) {
+  if (
+    path.startsWith('/_next') || 
+    path.includes('/favicon.ico') || 
+    path.endsWith('.png') || 
+    path.endsWith('.jpg') ||
+    path.endsWith('.json') ||
+    path.endsWith('.js')
+  ) {
     return NextResponse.next();
   }
 
