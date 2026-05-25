@@ -484,6 +484,19 @@ export default function CotizacionPage() {
     if (fileInputRef.current) fileInputRef.current.click();
   };
 
+  const deleteOC = async (cotizacionId: string) => {
+    if (!window.confirm('¿Seguro que deseas eliminar la Orden de Compra subida? Esto la regresará a estatus PENDIENTE.')) return;
+    
+    try {
+      const res = await fetch(`/api/ordenes-compra/${cotizacionId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Error al eliminar');
+      showMessage('Orden de compra eliminada.');
+      fetchHistorial();
+    } catch (error) {
+      showError('No se pudo eliminar la OC.');
+    }
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !uploadingOCFor) return;
@@ -1082,9 +1095,14 @@ export default function CotizacionPage() {
                         <FileText size={16} /> Ver PDF
                       </button>
                       {cotizacion.archivosOC && cotizacion.archivosOC.length > 0 ? (
-                        <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#16a34a', borderColor: '#16a34a' }} onClick={() => openOC(cotizacion.archivosOC![0].fileData)}>
-                          <FileText size={16} /> Ver OC
-                        </button>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#16a34a', borderColor: '#16a34a' }} onClick={() => openOC(cotizacion.archivosOC![0].fileData)}>
+                            <FileText size={16} /> Ver OC
+                          </button>
+                          <button className="btn btn-outline danger-outline" style={{ padding: '4px 8px', borderColor: '#ef4444', color: '#ef4444' }} onClick={() => deleteOC(cotizacion.id!)} title="Eliminar OC">
+                            <X size={16} />
+                          </button>
+                        </div>
                       ) : (
                         <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#0ea5e9', borderColor: '#0ea5e9' }} onClick={() => handleUploadClick(cotizacion.id!)}>
                           <Upload size={16} /> Subir OC
@@ -1155,9 +1173,14 @@ export default function CotizacionPage() {
                         <FileText size={16} /> Ver PDF
                       </button>
                       {cotizacion.archivosOC && cotizacion.archivosOC.length > 0 ? (
-                        <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#16a34a', borderColor: '#16a34a' }} onClick={() => openOC(cotizacion.archivosOC![0].fileData)}>
-                          <FileText size={16} /> Ver OC
-                        </button>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#16a34a', borderColor: '#16a34a' }} onClick={() => openOC(cotizacion.archivosOC![0].fileData)}>
+                            <FileText size={16} /> Ver OC
+                          </button>
+                          <button className="btn btn-outline danger-outline" style={{ padding: '4px 8px', borderColor: '#ef4444', color: '#ef4444' }} onClick={() => deleteOC(cotizacion.id!)} title="Eliminar OC">
+                            <X size={16} />
+                          </button>
+                        </div>
                       ) : (
                         <button className="btn btn-outline" style={{ padding: '4px 8px', color: '#0ea5e9', borderColor: '#0ea5e9' }} onClick={() => handleUploadClick(cotizacion.id!)}>
                           <Upload size={16} /> Subir OC

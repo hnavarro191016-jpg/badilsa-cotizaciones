@@ -34,3 +34,21 @@ export async function PUT(request: Request, { params }: { params: { cotizacionId
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request, { params }: { params: { cotizacionId: string } }) {
+  try {
+    await prisma.ordenCompraArchivo.deleteMany({
+      where: { cotizacionId: params.cotizacionId }
+    });
+    
+    await prisma.cotizacion.update({
+      where: { id: params.cotizacionId },
+      data: { estatusOC: 'PENDIENTE' }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error al eliminar OC:', error);
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 });
+  }
+}
