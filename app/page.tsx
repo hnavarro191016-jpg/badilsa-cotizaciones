@@ -224,6 +224,8 @@ export default function CotizacionPage() {
   const [newRequiresPasswordChange, setNewRequiresPasswordChange] = useState(true);
 
   const [remisiones, setRemisiones] = useState<NotaRemisionData[]>([]);
+  const [facturas, setFacturas] = useState<any[]>([]);
+  const [isUploadingFactura, setIsUploadingFactura] = useState(false);
   const [remisionFolio, setRemisionFolio] = useState('');
   const [remisionFecha, setRemisionFecha] = useState(todayInputValue());
   const [remisionCondiciones, setRemisionCondiciones] = useState('14 DIAS');
@@ -299,6 +301,9 @@ export default function CotizacionPage() {
   useEffect(() => {
     if (activeTab === 'reportes') {
       fetchReportes();
+    }
+    if (activeTab === 'facturacion') {
+      fetchFacturas();
     }
   }, [activeTab]);
 
@@ -378,6 +383,47 @@ export default function CotizacionPage() {
     setConfirmNewPassword('');
     showMessage('Contraseña actualizada correctamente');
     setCurrentUser(prev => prev ? { ...prev, requiresPasswordChange: false } : prev);
+  };
+
+  const fetchFacturas = async () => {
+    try {
+      const res = await fetch('/api/facturas');
+      if (res.ok) {
+        setFacturas(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUploadFactura = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingFactura(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('diasCredito', '30'); 
+
+    try {
+      const res = await fetch('/api/facturas/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        showMessage('Factura subida y procesada correctamente');
+        fetchFacturas();
+      } else {
+        const errorData = await res.json();
+        showError(errorData.error || 'Error al subir la factura');
+      }
+    } catch (e) {
+      showError('Error de red al subir la factura');
+    } finally {
+      setIsUploadingFactura(false);
+      if (e.target) e.target.value = ''; 
+    }
   };
 
   const fetchHistorial = async () => {
@@ -1366,14 +1412,121 @@ export default function CotizacionPage() {
       )}
 
       {activeTab === 'facturacion' && (
-        <section className="panel-page no-print" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center', borderRadius: '12px', marginTop: '2rem' }}>
-          <img src="/under_construction.png" alt="Under Construction" style={{ width: '100%', maxWidth: '350px', objectFit: 'contain', marginBottom: '1.5rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
-          <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>Módulo de Facturación</h2>
-          <p style={{ fontSize: '1.1rem', color: '#475569', maxWidth: '650px', lineHeight: '1.6' }}>
-            Estamos construyendo algo increíble para ti. Muy pronto podrás importar tus facturas (XML/PDF), generar tu propia base de datos de cobranza, monitorear los días de crédito de tus clientes y recibir alertas en rojo para pagos atrasados.
-          </p>
-          <div style={{ marginTop: '2rem', display: 'inline-block', padding: '0.75rem 2rem', background: '#f1f5f9', borderRadius: '999px', color: '#334155', fontWeight: '600', letterSpacing: '0.05em' }}>
-            PRÓXIMAMENTE
+        <section className="panel-page no-print">
+          <div className="panel-header">
+            <div>
+              <h2>Cuentas por Cobrar (Facturación)</h2>
+              <p>Sube tus XML del SAT y monitorea qué facturas están vencidas o por cobrar.</p>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <input type="file" accept=".xml" id="xml-upload" style={{ display: 'none' }} onChange={handleUploadFactura} disabled={isUploadingFactura} />
+              <button className="primary-btn" onClick={() => document.getElementById('xml-upload')?.click()} disabled={isUploadingFactura}>
+                <Upload size={18} /> {isUploadingFactura ? 'Subiendo...' : 'Subir XML Factura'}
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #0284c7', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#0284c7', textTransform: 'uppercase' }}>Por Cobrar Total</div>
+              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#334155', marginTop: '0.5rem' }}>
+                ${formatNumber(facturas.filter(f => f.estatusPago === 'PENDIENTE').reduce((sum, f) => sum + f.total, 0))}
+              </div>
+            </div>
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #ef4444', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#ef4444', textTransform: 'uppercase' }}>Vencido</div>
+              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#334155', marginTop: '0.5rem' }}>
+                ${formatNumber(facturas.filter(f => f.estatusPago === 'PENDIENTE' && new Date(f.fechaVencimiento) < new Date()).reduce((sum, f) => sum + f.total, 0))}
+              </div>
+            </div>
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #10b981', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#10b981', textTransform: 'uppercase' }}>Cobrado</div>
+              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#334155', marginTop: '0.5rem' }}>
+                ${formatNumber(facturas.filter(f => f.estatusPago === 'PAGADA').reduce((sum, f) => sum + f.total, 0))}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <table className="custom-table" style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>Folio SAT / Emisor</th>
+                  <th>Cliente (Receptor)</th>
+                  <th>Fecha Emisión</th>
+                  <th>Vencimiento</th>
+                  <th>Días Restantes</th>
+                  <th>Monto</th>
+                  <th>Estatus</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {facturas.length === 0 ? (
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No hay facturas registradas. Sube un archivo XML.</td></tr>
+                ) : facturas.map((f: any) => {
+                  const vence = new Date(f.fechaVencimiento);
+                  const hoy = new Date();
+                  const diasRestantes = Math.ceil((vence.getTime() - hoy.getTime()) / (1000 * 3600 * 24));
+                  const isVencido = diasRestantes < 0 && f.estatusPago === 'PENDIENTE';
+                  
+                  return (
+                    <tr key={f.id} style={{ background: isVencido ? '#fef2f2' : 'transparent' }}>
+                      <td>
+                        <div style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{f.uuid.split('-')[0]}...</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{f.emisorNombre}</div>
+                      </td>
+                      <td style={{ fontWeight: '500', color: '#334155', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={f.receptorNombre}>
+                        {f.receptorNombre}
+                      </td>
+                      <td>{new Date(f.fechaEmision).toLocaleDateString()}</td>
+                      <td style={{ fontWeight: '500' }}>{vence.toLocaleDateString()}</td>
+                      <td>
+                        {f.estatusPago === 'PAGADA' ? (
+                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>--</span>
+                        ) : isVencido ? (
+                          <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{Math.abs(diasRestantes)} días vencido</span>
+                        ) : (
+                          <span style={{ color: '#0284c7' }}>{diasRestantes} días</span>
+                        )}
+                      </td>
+                      <td style={{ fontWeight: 'bold', color: '#0f172a' }}>${formatNumber(f.total)} <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{f.moneda}</span></td>
+                      <td>
+                        <select 
+                          style={{ 
+                            padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', outline: 'none', cursor: 'pointer',
+                            background: f.estatusPago === 'PAGADA' ? '#dcfce7' : f.estatusPago === 'PENDIENTE' ? '#fef08a' : '#f1f5f9',
+                            color: f.estatusPago === 'PAGADA' ? '#16a34a' : f.estatusPago === 'PENDIENTE' ? '#ca8a04' : '#475569',
+                            border: 'none'
+                          }}
+                          value={f.estatusPago}
+                          onChange={async (e) => {
+                            try {
+                              const res = await fetch('/api/facturas', { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: f.id, estatusPago: e.target.value }) });
+                              if (res.ok) { fetchFacturas(); showMessage('Estatus actualizado'); }
+                            } catch (err) { showError('Error al actualizar'); }
+                          }}
+                        >
+                          <option value="PENDIENTE">Pendiente</option>
+                          <option value="PAGADA">Pagada</option>
+                          <option value="CANCELADA">Cancelada</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button className="icon-btn" title="Eliminar factura" onClick={async () => {
+                          if (window.confirm('¿Seguro que quieres borrar esta factura?')) {
+                             try {
+                               const res = await fetch(`/api/facturas/${f.id}`, { method: 'DELETE' });
+                               if (res.ok) { fetchFacturas(); showMessage('Factura eliminada'); }
+                             } catch(err) { showError('Error eliminando factura'); }
+                          }
+                        }}><Trash2 size={16} color="#ef4444" /></button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </section>
       )}

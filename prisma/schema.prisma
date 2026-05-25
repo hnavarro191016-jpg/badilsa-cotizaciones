@@ -46,6 +46,7 @@ model Cotizacion {
   items         ItemCotizacion[]
   archivosOC    OrdenCompraArchivo[]
   notasRemision NotaRemision[]
+  facturas      Factura[]
 }
 
 model ItemCotizacion {
@@ -93,4 +94,27 @@ model ItemNotaRemision {
   cantidad         Float
   descripcion      String
   notaRemision     NotaRemision @relation(fields: [notaRemisionId], references: [id], onDelete: Cascade)
+}
+
+model Factura {
+  id               String   @id @default(cuid())
+  uuid             String   @unique // Folio Fiscal (UUID del SAT)
+  emisorRfc        String
+  emisorNombre     String
+  receptorRfc      String
+  receptorNombre   String
+  fechaEmision     DateTime
+  fechaVencimiento DateTime // Calculado con los días de crédito
+  moneda           String   @default("MXN")
+  subTotal         Float
+  iva              Float
+  total            Float
+  estatusPago      String   @default("PENDIENTE") // PENDIENTE, PAGADA, CANCELADA
+  cotizacionId     String?  
+  cotizacion       Cotizacion? @relation(fields: [cotizacionId], references: [id], onDelete: SetNull)
+  xmlData          String?  @db.Text 
+  pdfUrl           String?  
+  diasCredito      Int      @default(30)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
