@@ -1899,7 +1899,26 @@ export default function CotizacionPage() {
             <select 
               className="inline-input" 
               value={remisionCotizacionId} 
-              onChange={e => setRemisionCotizacionId(e.target.value)}
+              onChange={e => {
+                const cotId = e.target.value;
+                setRemisionCotizacionId(cotId);
+                if (cotId) {
+                  const selectedCot = historial.find(c => c.id === cotId);
+                  if (selectedCot && selectedCot.items && selectedCot.items.length > 0) {
+                    if (window.confirm('¿Deseas importar las partidas de esta cotización a la remisión?')) {
+                      setRemisionItems(selectedCot.items.map(item => ({
+                        id: Date.now().toString() + Math.random().toString(),
+                        cantidad: item.cantidad,
+                        descripcion: item.descripcion,
+                        isEditing: false
+                      })));
+                      if (selectedCot.empresa) {
+                        setRemisionCliente(selectedCot.empresa);
+                      }
+                    }
+                  }
+                }
+              }}
               style={{ width: '300px' }}
             >
               <option value="">-- Ninguna --</option>
