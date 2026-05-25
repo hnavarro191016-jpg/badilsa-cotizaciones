@@ -1340,9 +1340,7 @@ export default function CotizacionPage() {
 
       {activeTab === 'facturacion' && (
         <section className="panel-page no-print" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center', borderRadius: '12px', marginTop: '2rem' }}>
-          <div style={{ background: '#eff6ff', padding: '1.5rem', borderRadius: '50%', marginBottom: '1.5rem' }}>
-            <DollarSign size={48} style={{ color: '#2563eb' }} />
-          </div>
+          <img src="/under_construction.png" alt="Under Construction" style={{ width: '100%', maxWidth: '350px', objectFit: 'contain', marginBottom: '1.5rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }} />
           <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>Módulo de Facturación</h2>
           <p style={{ fontSize: '1.1rem', color: '#475569', maxWidth: '650px', lineHeight: '1.6' }}>
             Estamos construyendo algo increíble para ti. Muy pronto podrás importar tus facturas (XML/PDF), generar tu propia base de datos de cobranza, monitorear los días de crédito de tus clientes y recibir alertas en rojo para pagos atrasados.
