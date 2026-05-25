@@ -103,26 +103,30 @@ export async function GET(request: Request) {
     const distribucionEstatus = Object.entries(estatusMap).map(([name, data]) => ({ name, value: data.value }));
 
     // E) Vendedores (Atención)
-    const vendedoresMap: Record<string, { totalCotizado: number; totalOC: number; montoVendido: number }> = {};
+    const vendedoresMap: Record<string, { totalCotizado: number; totalOC: number; montoMXN: number; montoUSD: number }> = {};
     cotizaciones.forEach(c => {
       const v = c.atencion.trim() || 'Desconocido';
-      if (!vendedoresMap[v]) vendedoresMap[v] = { totalCotizado: 0, totalOC: 0, montoVendido: 0 };
+      if (!vendedoresMap[v]) vendedoresMap[v] = { totalCotizado: 0, totalOC: 0, montoMXN: 0, montoUSD: 0 };
       vendedoresMap[v].totalCotizado += 1;
-      
-      const montoEstandarizado = c.moneda === 'DOLARES' || c.moneda === 'USD' ? c.total * 17 : c.total;
       
       if (c.estatusOC === 'RECIBIDA' || c.estatusOC === 'VALIDADA' || c.archivosOC.length > 0) {
         vendedoresMap[v].totalOC += 1;
-        vendedoresMap[v].montoVendido += montoEstandarizado;
+        if (c.moneda === 'DOLARES' || c.moneda === 'USD') {
+          vendedoresMap[v].montoUSD += c.total;
+        } else {
+          vendedoresMap[v].montoMXN += c.total;
+        }
       }
     });
     const topVendedores = Object.entries(vendedoresMap)
       .map(([nombre, data]) => ({
         nombre,
         tasa: data.totalCotizado > 0 ? Math.round((data.totalOC / data.totalCotizado) * 100) : 0,
-        montoVendido: data.montoVendido
+        montoMXN: data.montoMXN,
+        montoUSD: data.montoUSD,
+        sortTotal: data.montoMXN + (data.montoUSD * 17)
       }))
-      .sort((a, b) => b.montoVendido - a.montoVendido)
+      .sort((a, b) => b.sortTotal - a.sortTotal)
       .slice(0, 5);
 
     // F) Top Servicios

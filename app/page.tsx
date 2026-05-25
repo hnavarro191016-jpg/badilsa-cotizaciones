@@ -1321,7 +1321,11 @@ export default function CotizacionPage() {
                           <span style={{ fontWeight: '600', color: '#334155', display: 'block' }}>{v.nombre}</span>
                           <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Tasa: {v.tasa}%</span>
                         </div>
-                        <span style={{ fontWeight: 'bold', color: '#16a34a' }}>${formatNumber(v.montoVendido)}</span>
+                        <div style={{ textAlign: 'right' }}>
+                          {v.montoMXN > 0 && <div style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '0.9rem' }}>MXN ${formatNumber(v.montoMXN)}</div>}
+                          {v.montoUSD > 0 && <div style={{ fontWeight: 'bold', color: '#0284c7', fontSize: '0.9rem' }}>USD ${formatNumber(v.montoUSD)}</div>}
+                          {v.montoMXN === 0 && v.montoUSD === 0 && <div style={{ fontWeight: 'bold', color: '#16a34a', fontSize: '0.9rem' }}>$0.00</div>}
+                        </div>
                       </div>
                     ))}
                   </div>
