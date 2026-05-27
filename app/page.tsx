@@ -1447,23 +1447,23 @@ export default function CotizacionPage() {
             </div>
           </div>
 
-          <div style={{ background: 'white', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-            <table className="custom-table" style={{ width: '100%' }}>
+          <div style={{ background: 'white', borderRadius: '1rem', overflowX: 'auto', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', padding: '1rem' }}>
+            <table className="custom-table" style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse' }}>
               <thead>
-                <tr>
-                  <th>Folio SAT / Emisor</th>
-                  <th>Cliente (Receptor)</th>
-                  <th>Fecha Emisión</th>
-                  <th>Vencimiento</th>
-                  <th>Días Restantes</th>
-                  <th>Monto</th>
-                  <th>Estatus</th>
-                  <th>Acciones</th>
+                <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'left', color: '#475569' }}>Folio Fiscal (UUID)</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'left', color: '#475569' }}>Emisor</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'left', color: '#475569' }}>Cliente (Receptor)</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'left', color: '#475569' }}>Fecha Emisión</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'left', color: '#475569' }}>Vencimiento</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'left', color: '#475569' }}>Monto</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'center', color: '#475569' }}>Estatus</th>
+                  <th style={{ padding: '1rem 0.5rem', textAlign: 'center', color: '#475569' }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {facturas.length === 0 ? (
-                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>No hay facturas registradas. Sube un archivo XML.</td></tr>
+                  <tr><td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>No hay facturas registradas. Sube un archivo XML.</td></tr>
                 ) : facturas.map((f: any) => {
                   const vence = new Date(f.fechaVencimiento);
                   const hoy = new Date();
@@ -1471,33 +1471,39 @@ export default function CotizacionPage() {
                   const isVencido = diasRestantes < 0 && f.estatusPago === 'PENDIENTE';
                   
                   return (
-                    <tr key={f.id} style={{ background: isVencido ? '#fef2f2' : 'transparent' }}>
-                      <td>
-                        <div style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{f.uuid.split('-')[0]}...</div>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{f.emisorNombre}</div>
+                    <tr key={f.id} style={{ background: isVencido ? '#fef2f2' : 'transparent', borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '1rem 0.5rem', fontSize: '0.75rem', fontFamily: 'monospace', color: '#64748b' }}>
+                        {f.uuid}
                       </td>
-                      <td style={{ fontWeight: '500', color: '#334155', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={f.receptorNombre}>
+                      <td style={{ padding: '1rem 0.5rem', fontWeight: 'bold', fontSize: '0.85rem', color: '#334155', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={f.emisorNombre}>
+                        {f.emisorNombre}
+                      </td>
+                      <td style={{ padding: '1rem 0.5rem', fontWeight: 'bold', color: '#0f172a', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={f.receptorNombre}>
                         {f.receptorNombre}
                       </td>
-                      <td>{new Date(f.fechaEmision).toLocaleDateString()}</td>
-                      <td style={{ fontWeight: '500' }}>{vence.toLocaleDateString()}</td>
-                      <td>
+                      <td style={{ padding: '1rem 0.5rem', color: '#475569', fontSize: '0.9rem' }}>
+                        {new Date(f.fechaEmision).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '1rem 0.5rem' }}>
+                        <div style={{ fontWeight: '500', color: '#334155' }}>{vence.toLocaleDateString()}</div>
                         {f.estatusPago === 'PAGADA' ? (
-                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>--</span>
+                          <div style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 'bold' }}>Liquidada</div>
                         ) : isVencido ? (
-                          <span style={{ color: '#ef4444', fontWeight: 'bold' }}>{Math.abs(diasRestantes)} días vencido</span>
+                          <div style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 'bold' }}>{Math.abs(diasRestantes)} días vencido</div>
                         ) : (
-                          <span style={{ color: '#0284c7' }}>{diasRestantes} días</span>
+                          <div style={{ fontSize: '0.75rem', color: '#0284c7' }}>Restan {diasRestantes} días</div>
                         )}
                       </td>
-                      <td style={{ fontWeight: 'bold', color: '#0f172a' }}>${formatNumber(f.total)} <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{f.moneda}</span></td>
-                      <td>
+                      <td style={{ padding: '1rem 0.5rem', fontWeight: '800', color: '#0f172a' }}>
+                        ${formatNumber(f.total)} <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 'normal' }}>{f.moneda}</span>
+                      </td>
+                      <td style={{ padding: '1rem 0.5rem', textAlign: 'center' }}>
                         <select 
                           style={{ 
-                            padding: '0.25rem 0.5rem', borderRadius: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold', outline: 'none', cursor: 'pointer',
+                            padding: '0.35rem 0.75rem', borderRadius: '999px', fontSize: '0.85rem', fontWeight: 'bold', outline: 'none', cursor: 'pointer',
                             background: f.estatusPago === 'PAGADA' ? '#dcfce7' : f.estatusPago === 'PENDIENTE' ? '#fef08a' : '#f1f5f9',
                             color: f.estatusPago === 'PAGADA' ? '#16a34a' : f.estatusPago === 'PENDIENTE' ? '#ca8a04' : '#475569',
-                            border: 'none'
+                            border: '1px solid transparent', transition: 'all 0.2s'
                           }}
                           value={f.estatusPago}
                           onChange={async (e) => {
@@ -1507,12 +1513,12 @@ export default function CotizacionPage() {
                             } catch (err) { showError('Error al actualizar'); }
                           }}
                         >
-                          <option value="PENDIENTE">Pendiente</option>
-                          <option value="PAGADA">Pagada</option>
-                          <option value="CANCELADA">Cancelada</option>
+                          <option value="PENDIENTE">PENDIENTE</option>
+                          <option value="PAGADA">PAGADA</option>
+                          <option value="CANCELADA">CANCELADA</option>
                         </select>
                       </td>
-                      <td>
+                      <td style={{ padding: '1rem 0.5rem', textAlign: 'center' }}>
                         <button className="icon-btn" title="Eliminar factura" onClick={async () => {
                           if (window.confirm('¿Seguro que quieres borrar esta factura?')) {
                              try {
@@ -1520,7 +1526,7 @@ export default function CotizacionPage() {
                                if (res.ok) { fetchFacturas(); showMessage('Factura eliminada'); }
                              } catch(err) { showError('Error eliminando factura'); }
                           }
-                        }}><Trash2 size={16} color="#ef4444" /></button>
+                        }}><Trash2 size={18} color="#ef4444" /></button>
                       </td>
                     </tr>
                   );
