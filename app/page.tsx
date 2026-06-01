@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target, X } from 'lucide-react';
+import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target, X, Menu } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
@@ -188,7 +188,7 @@ export default function CotizacionPage() {
 
   const [currentCotizacionId, setCurrentCotizacionId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadingOCFor, setUploadingOCFor] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [folio, setFolio] = useState('');
   const [fecha, setFecha] = useState(todayInputValue());
@@ -242,6 +242,8 @@ export default function CotizacionPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  const userRole = currentUser?.role;
 
   const subTotal = useMemo(
     () => items.reduce((acc, item) => {
@@ -947,33 +949,36 @@ export default function CotizacionPage() {
 
   return (
     <div className="app-container">
-      <aside className="app-sidebar no-print">
+      {isMobileMenuOpen && (
+        <div className="sidebar-overlay no-print" onClick={() => setIsMobileMenuOpen(false)}></div>
+      )}
+      <aside className={`app-sidebar no-print ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-logo">
           <img src="/logo.png" alt="Badilsa Logo" style={{ width: '100%', maxWidth: '200px', objectFit: 'contain' }} />
         </div>
         <div className="sidebar-menu">
           <div className="sidebar-menu-title">Menú Principal</div>
-          <button className={`sidebar-link ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => setActiveTab('inicio')}>
+          <button className={`sidebar-link ${activeTab === 'inicio' ? 'active' : ''}`} onClick={() => { setActiveTab('inicio'); setIsMobileMenuOpen(false); }}>
             <Home size={18} /> Inicio
           </button>
-          <button className={`sidebar-link ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => setActiveTab('historial')}>
+          <button className={`sidebar-link ${activeTab === 'historial' ? 'active' : ''}`} onClick={() => { setActiveTab('historial'); setIsMobileMenuOpen(false); }}>
             <History size={18} /> Historial
           </button>
-          <button className={`sidebar-link ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={startNewCotizacion}>
+          <button className={`sidebar-link ${activeTab === 'cotizacion' ? 'active' : ''}`} onClick={() => { startNewCotizacion(); setIsMobileMenuOpen(false); }}>
             <Plus size={18} /> Nueva Cotización
           </button>
-          <button className={`sidebar-link ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={() => { setActiveTab('remisiones'); setCurrentRemisionId(null); setMode('edit'); }}>
+          <button className={`sidebar-link ${activeTab === 'remisiones' ? 'active' : ''}`} onClick={() => { setActiveTab('remisiones'); setCurrentRemisionId(null); setMode('edit'); setIsMobileMenuOpen(false); }}>
             <FileText size={18} /> Notas de Remisión
           </button>
-          {currentUser?.role === 'ADMIN' && (
+          {userRole === 'ADMIN' && (
             <>
-              <button className={`sidebar-link ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => setActiveTab('reportes')}>
+              <button className={`sidebar-link ${activeTab === 'reportes' ? 'active' : ''}`} onClick={() => { setActiveTab('reportes'); setIsMobileMenuOpen(false); }}>
                 <PieChart size={18} /> Reportes
               </button>
-              <button className={`sidebar-link ${activeTab === 'facturacion' ? 'active' : ''}`} onClick={() => setActiveTab('facturacion')}>
+              <button className={`sidebar-link ${activeTab === 'facturacion' ? 'active' : ''}`} onClick={() => { setActiveTab('facturacion'); setIsMobileMenuOpen(false); }}>
                 <DollarSign size={18} /> Facturación
               </button>
-              <button className={`sidebar-link ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => setActiveTab('usuarios')}>
+              <button className={`sidebar-link ${activeTab === 'usuarios' ? 'active' : ''}`} onClick={() => { setActiveTab('usuarios'); setIsMobileMenuOpen(false); }}>
                 <UserPlus size={18} /> Usuarios
               </button>
             </>
@@ -997,16 +1002,21 @@ export default function CotizacionPage() {
       </aside>
 
       <main className="app-main-content">
-        <div className="toolbar no-print">
-          <h1 className="text-xl font-bold" style={{ color: '#1e293b' }}>
-            {activeTab === 'inicio' && 'Inicio'}
-            {activeTab === 'historial' && 'Historial'}
-            {activeTab === 'cotizacion' && 'Cotización'}
-            {activeTab === 'remisiones' && 'Notas de Remisión'}
-            {activeTab === 'reportes' && 'Reportes'}
-            {activeTab === 'facturacion' && 'Facturación'}
-            {activeTab === 'usuarios' && 'Usuarios'}
-          </h1>
+        <header className="toolbar no-print">
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button className="mobile-menu-btn no-print" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <h1 className="text-xl font-bold" style={{ color: '#1e293b' }}>
+              {activeTab === 'inicio' && 'Inicio'}
+              {activeTab === 'historial' && 'Historial'}
+              {activeTab === 'cotizacion' && 'Cotización'}
+              {activeTab === 'remisiones' && 'Notas de Remisión'}
+              {activeTab === 'reportes' && 'Reportes'}
+              {activeTab === 'facturacion' && 'Facturación'}
+              {activeTab === 'usuarios' && 'Usuarios'}
+            </h1>
+          </div>
           <div className="flex gap-2">
             {(activeTab === 'cotizacion' || activeTab === 'remisiones') && (
               <button className="btn btn-outline" onClick={handlePrint}>
