@@ -188,6 +188,7 @@ export default function CotizacionPage() {
 
   const [currentCotizacionId, setCurrentCotizacionId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingOCFor, setUploadingOCFor] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [folio, setFolio] = useState('');
@@ -1046,7 +1047,7 @@ export default function CotizacionPage() {
               </button>
             )}
           </div>
-        </div>
+        </header>
 
         <div className="main-shell no-print" style={{ marginTop: '0', paddingTop: '1.5rem' }}>
           {(message || error) && (
