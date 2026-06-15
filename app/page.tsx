@@ -204,6 +204,7 @@ export default function CotizacionPage() {
   const [historial, setHistorial] = useState<CotizacionData[]>([]);
   const [historyFilterDate, setHistoryFilterDate] = useState('todas');
   const [historyFilterStatus, setHistoryFilterStatus] = useState('todos');
+  const [historyFilterEmpresa, setHistoryFilterEmpresa] = useState('todas');
 
   const [users, setUsers] = useState<UserData[]>([]);
   const [reportData, setReportData] = useState<any>(null);
@@ -256,6 +257,11 @@ export default function CotizacionPage() {
   const iva = subTotal * 0.16;
   const total = subTotal + iva;
 
+  const uniqueEmpresas = useMemo(() => {
+    const empresas = new Set(historial.map(c => c.empresa).filter(Boolean));
+    return Array.from(empresas).sort();
+  }, [historial]);
+
   const filteredHistorial = useMemo(() => {
     let result = historial;
 
@@ -292,8 +298,12 @@ export default function CotizacionPage() {
       });
     }
 
-    return result;
-  }, [historial, historyFilterDate, historyFilterStatus]);
+    if (historyFilterEmpresa !== 'todas') {
+      result = result.filter(c => c.empresa === historyFilterEmpresa);
+    }
+
+    return result.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  }, [historial, historyFilterDate, historyFilterStatus, historyFilterEmpresa]);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -1099,6 +1109,15 @@ export default function CotizacionPage() {
                   <option value="todos">Todos los Estatus</option>
                   <option value="PENDIENTE">Pendientes de OC</option>
                   <option value="RECIBIDA">Completadas (OC Recibida)</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Filtro de Empresa:</label>
+                <select className="input" value={historyFilterEmpresa} onChange={(e) => setHistoryFilterEmpresa(e.target.value)} style={{ padding: '0.5rem' }}>
+                  <option value="todas">Todas las Empresas</option>
+                  {uniqueEmpresas.map(emp => (
+                    <option key={emp} value={emp}>{emp}</option>
+                  ))}
                 </select>
               </div>
             </div>
