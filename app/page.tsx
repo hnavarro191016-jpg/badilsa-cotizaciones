@@ -229,6 +229,7 @@ export default function CotizacionPage() {
   const [facturas, setFacturas] = useState<any[]>([]);
   const [isUploadingFactura, setIsUploadingFactura] = useState(false);
   const [remisionFolio, setRemisionFolio] = useState('');
+  const [isDraggingFactura, setIsDraggingFactura] = useState(false);
   const [remisionFecha, setRemisionFecha] = useState(todayInputValue());
   const [remisionCondiciones, setRemisionCondiciones] = useState('14 DIAS');
   const [remisionCliente, setRemisionCliente] = useState('');
@@ -435,7 +436,25 @@ export default function CotizacionPage() {
       showError('Error de red al subir la factura');
     } finally {
       setIsUploadingFactura(false);
-      if (e.target) e.target.value = ''; 
+      if (e.target && 'value' in e.target) e.target.value = ''; 
+    }
+  };
+
+  const handleDragOverFactura = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingFactura(true);
+  };
+  const handleDragLeaveFactura = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingFactura(false);
+  };
+  const handleDropFactura = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingFactura(false);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const pseudoEvent = { target: { files: files } } as unknown as React.ChangeEvent<HTMLInputElement>;
+      handleUploadFactura(pseudoEvent);
     }
   };
 
@@ -1442,42 +1461,188 @@ export default function CotizacionPage() {
       )}
 
       {activeTab === 'facturacion' && (
-        <section className="panel-page no-print">
-          <div className="panel-header">
+        <section className="panel-page no-print" style={{ padding: '2rem', background: '#f8fafc', minHeight: '100vh' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
-              <h2>Cuentas por Cobrar (Facturación)</h2>
-              <p>Sube tus XML del SAT y monitorea qué facturas están vencidas o por cobrar.</p>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1e293b' }}>CFDI Control</h2>
+              <p style={{ color: '#64748b' }}>Carga, controla y analiza tus CFDI (Facturas).</p>
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <input type="file" accept=".xml" id="xml-upload" style={{ display: 'none' }} onChange={handleUploadFactura} disabled={isUploadingFactura} />
-              <button className="primary-btn" onClick={() => document.getElementById('xml-upload')?.click()} disabled={isUploadingFactura}>
-                <Upload size={18} /> {isUploadingFactura ? 'Subiendo...' : 'Subir XML Factura'}
-              </button>
+              <div style={{ background: 'white', padding: '0.5rem 1rem', borderRadius: '999px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', fontWeight: 'bold', color: '#334155' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></span> Periodo Actual
+              </div>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #0284c7', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#0284c7', textTransform: 'uppercase' }}>Por Cobrar Total</div>
-              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#334155', marginTop: '0.5rem' }}>
-                ${formatNumber(facturas.filter(f => f.estatusPago === 'PENDIENTE').reduce((sum, f) => sum + f.total, 0))}
+          {/* KPIs */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ padding: '0.5rem', background: '#e0f2fe', borderRadius: '0.5rem', color: '#0284c7' }}><FileText size={20} /></div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Emitidos</div>
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>
+                {facturas.length}
               </div>
             </div>
-            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #ef4444', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#ef4444', textTransform: 'uppercase' }}>Vencido</div>
-              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#334155', marginTop: '0.5rem' }}>
-                ${formatNumber(facturas.filter(f => f.estatusPago === 'PENDIENTE' && new Date(f.fechaVencimiento) < new Date()).reduce((sum, f) => sum + f.total, 0))}
+            
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ padding: '0.5rem', background: '#dcfce7', borderRadius: '0.5rem', color: '#16a34a' }}><Check size={20} /></div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Pagados</div>
               </div>
-            </div>
-            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', borderLeft: '5px solid #10b981', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#10b981', textTransform: 'uppercase' }}>Cobrado</div>
-              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#334155', marginTop: '0.5rem' }}>
+              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>
                 ${formatNumber(facturas.filter(f => f.estatusPago === 'PAGADA').reduce((sum, f) => sum + f.total, 0))}
               </div>
             </div>
+
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ padding: '0.5rem', background: '#fef08a', borderRadius: '0.5rem', color: '#ca8a04' }}><DollarSign size={20} /></div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Pendientes</div>
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>
+                ${formatNumber(facturas.filter(f => f.estatusPago === 'PENDIENTE').reduce((sum, f) => sum + f.total, 0))}
+              </div>
+            </div>
+
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ padding: '0.5rem', background: '#fee2e2', borderRadius: '0.5rem', color: '#ef4444' }}><Target size={20} /></div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Vencidos</div>
+              </div>
+              <div style={{ fontSize: '2rem', fontWeight: '800', color: '#1e293b' }}>
+                ${formatNumber(facturas.filter(f => f.estatusPago === 'PENDIENTE' && new Date(f.fechaVencimiento) < new Date()).reduce((sum, f) => sum + f.total, 0))}
+              </div>
+            </div>
           </div>
 
-          <div style={{ background: 'white', borderRadius: '1rem', overflowX: 'auto', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0', padding: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            {/* Drag & Drop Zone */}
+            <div 
+              style={{ 
+                background: 'white', padding: '2rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+              }}
+            >
+              <div 
+                onDragOver={handleDragOverFactura}
+                onDragLeave={handleDragLeaveFactura}
+                onDrop={handleDropFactura}
+                style={{ 
+                  width: '100%', padding: '3rem 2rem', border: `2px dashed ${isDraggingFactura ? '#3b82f6' : '#cbd5e1'}`, 
+                  borderRadius: '1rem', textAlign: 'center', background: isDraggingFactura ? '#eff6ff' : '#f8fafc',
+                  transition: 'all 0.2s ease', cursor: 'pointer'
+                }}
+                onClick={() => document.getElementById('xml-upload')?.click()}
+              >
+                <div style={{ color: '#3b82f6', marginBottom: '1rem' }}>
+                  <Upload size={48} style={{ margin: '0 auto' }} />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#1e293b', marginBottom: '0.5rem' }}>
+                  Arrastra y suelta tus archivos XML aquí
+                </h3>
+                <p style={{ color: '#64748b', marginBottom: '2rem' }}>
+                  o selecciona una opción para cargar XML
+                </p>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                  <button className="btn btn-primary" style={{ padding: '0.75rem 2rem', fontSize: '1rem' }} onClick={(e) => { e.stopPropagation(); document.getElementById('xml-upload')?.click(); }}>
+                    Seleccionar archivos
+                  </button>
+                  <input type="file" accept=".xml" id="xml-upload" style={{ display: 'none' }} onChange={handleUploadFactura} disabled={isUploadingFactura} multiple />
+                </div>
+                {isUploadingFactura && <p style={{ marginTop: '1rem', color: '#3b82f6', fontWeight: 'bold' }}>Procesando archivo...</p>}
+              </div>
+            </div>
+
+            {/* Opciones y Próximamente */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ fontWeight: 'bold', color: '#1e293b' }}>Descarga SAT</h3>
+                  <span style={{ background: '#fef08a', color: '#ca8a04', padding: '0.25rem 0.75rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 'bold' }}>PRÓXIMAMENTE</span>
+                </div>
+                <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                  Esta función estará disponible en la Fase 2 cuando tu empresa configure:
+                </p>
+                <ul style={{ fontSize: '0.875rem', color: '#475569', marginBottom: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div> RFC configurado</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }}></div> e.firma/certificado válido</li>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ca8a04' }}></div> Readiness fiscal &gt;= 70%</li>
+                </ul>
+                <button className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }} disabled>
+                  Descargar del SAT
+                </button>
+              </div>
+
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+                <h3 style={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '1rem' }}>IA Aferi (Insights)</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                    <div style={{ color: '#ef4444', marginTop: '0.2rem' }}><Target size={16} /></div>
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#334155' }}>
+                        {facturas.filter(f => f.estatusPago === 'PENDIENTE' && new Date(f.fechaVencimiento) < new Date()).length} facturas vencidas
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Revisa la tabla inferior para gestionar la cobranza.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Gráficas */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+              <h3 style={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '1.5rem' }}>Estatus de CFDI</h3>
+              <div style={{ height: '250px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <RechartsPieChart>
+                    <Pie
+                      data={[
+                        { name: 'Pagadas', value: facturas.filter(f => f.estatusPago === 'PAGADA').length, color: '#10b981' },
+                        { name: 'Pendientes', value: facturas.filter(f => f.estatusPago === 'PENDIENTE').length, color: '#fef08a' },
+                        { name: 'Vencidas', value: facturas.filter(f => f.estatusPago === 'PENDIENTE' && new Date(f.fechaVencimiento) < new Date()).length, color: '#ef4444' }
+                      ].filter(d => d.value > 0)}
+                      cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value"
+                    >
+                      {[{ name: 'Pagadas', value: facturas.filter(f => f.estatusPago === 'PAGADA').length, color: '#10b981' },
+                        { name: 'Pendientes', value: facturas.filter(f => f.estatusPago === 'PENDIENTE').length, color: '#fef08a' },
+                        { name: 'Vencidas', value: facturas.filter(f => f.estatusPago === 'PENDIENTE' && new Date(f.fechaVencimiento) < new Date()).length, color: '#ef4444' }
+                      ].filter(d => d.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip />
+                    <Legend />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '1rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' }}>
+              <h3 style={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '1.5rem' }}>Concentración por Cliente</h3>
+              <div style={{ height: '250px', overflowY: 'auto' }}>
+                {Object.entries(facturas.reduce((acc, f) => {
+                  acc[f.receptorNombre] = (acc[f.receptorNombre] || 0) + f.total;
+                  return acc;
+                }, {} as any)).sort(([,a], [,b]) => (b as number) - (a as number)).slice(0, 5).map(([cliente, total]) => (
+                  <div key={cliente} style={{ marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
+                      <span style={{ color: '#475569', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '70%' }}>{cliente}</span>
+                      <span style={{ color: '#1e293b', fontWeight: 'bold' }}>${formatNumber(total as number)}</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: '#f1f5f9', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ width: `${Math.min(100, ((total as number) / (facturas.reduce((s,f) => s + f.total, 0) || 1)) * 100)}%`, height: '100%', background: '#3b82f6' }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: 'white', borderRadius: '1rem', overflowX: 'auto', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)', border: '1px solid #e2e8f0', padding: '1.5rem' }}>
+            <h3 style={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '1.5rem' }}>Desglose de CFDI</h3>
             <table className="custom-table" style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
