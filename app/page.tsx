@@ -205,6 +205,7 @@ export default function CotizacionPage() {
   const [historyFilterDate, setHistoryFilterDate] = useState('todas');
   const [historyFilterStatus, setHistoryFilterStatus] = useState('todos');
   const [historyFilterEmpresa, setHistoryFilterEmpresa] = useState('todas');
+  const [historyFilterAtencion, setHistoryFilterAtencion] = useState('todas');
 
   const [users, setUsers] = useState<UserData[]>([]);
   const [reportData, setReportData] = useState<any>(null);
@@ -263,6 +264,11 @@ export default function CotizacionPage() {
     return Array.from(empresas).sort();
   }, [historial]);
 
+  const uniqueAtencion = useMemo(() => {
+    const atenciones = new Set(historial.map(c => c.atencion).filter(Boolean));
+    return Array.from(atenciones).sort();
+  }, [historial]);
+
   const filteredHistorial = useMemo(() => {
     let result = historial;
 
@@ -303,8 +309,12 @@ export default function CotizacionPage() {
       result = result.filter(c => c.empresa === historyFilterEmpresa);
     }
 
+    if (historyFilterAtencion !== 'todas') {
+      result = result.filter(c => c.atencion === historyFilterAtencion);
+    }
+
     return result.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-  }, [historial, historyFilterDate, historyFilterStatus, historyFilterEmpresa]);
+  }, [historial, historyFilterDate, historyFilterStatus, historyFilterEmpresa, historyFilterAtencion]);
 
   useEffect(() => {
     fetchCurrentUser();
@@ -1110,10 +1120,18 @@ export default function CotizacionPage() {
 
           <EstatusOCDashboard historial={historial} />
 
-          <div className="panel-header" style={{ background: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', marginBottom: '2rem' }}>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0.75rem', marginBottom: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 'bold', color: '#475569', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Filter size={18} /> Filtros de Búsqueda
+              </h3>
+              <button className="btn btn-primary" onClick={startNewCotizacion}>
+                <Plus size={18} /> Nueva Cotizacion
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', width: '100%' }}>
               <div>
-                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Filtro de Fecha:</label>
+                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Fecha:</label>
                 <select className="input" value={historyFilterDate} onChange={(e) => setHistoryFilterDate(e.target.value)} style={{ padding: '0.5rem' }}>
                   <option value="todas">Todas las Fechas</option>
                   <option value="hoy">El Día de Hoy</option>
@@ -1123,7 +1141,7 @@ export default function CotizacionPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Filtro de Estatus:</label>
+                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Estatus:</label>
                 <select className="input" value={historyFilterStatus} onChange={(e) => setHistoryFilterStatus(e.target.value)} style={{ padding: '0.5rem' }}>
                   <option value="todos">Todos los Estatus</option>
                   <option value="PENDIENTE">Pendientes de OC</option>
@@ -1131,7 +1149,7 @@ export default function CotizacionPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Filtro de Empresa:</label>
+                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Empresa:</label>
                 <select className="input" value={historyFilterEmpresa} onChange={(e) => setHistoryFilterEmpresa(e.target.value)} style={{ padding: '0.5rem' }}>
                   <option value="todas">Todas las Empresas</option>
                   {uniqueEmpresas.map(emp => (
@@ -1139,10 +1157,16 @@ export default function CotizacionPage() {
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Atención:</label>
+                <select className="input" value={historyFilterAtencion} onChange={(e) => setHistoryFilterAtencion(e.target.value)} style={{ padding: '0.5rem' }}>
+                  <option value="todas">Cualquier Atención</option>
+                  {uniqueAtencion.map(atn => (
+                    <option key={atn} value={atn}>{atn}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <button className="btn btn-primary" onClick={startNewCotizacion}>
-              <Plus size={18} /> Nueva Cotizacion
-            </button>
           </div>
 
           {(historyFilterStatus === 'todos' || historyFilterStatus === 'PENDIENTE') && (
@@ -1174,6 +1198,7 @@ export default function CotizacionPage() {
                       </select>
                     </div>
                     <div className="text-sm text-gray">{cotizacion.empresa} - {formatDisplayDate(cotizacion.fecha)}</div>
+                    {cotizacion.atencion && <div className="text-sm" style={{ color: '#64748b', fontStyle: 'italic', marginTop: '2px' }}>Atención: {cotizacion.atencion}</div>}
                   </div>
                   <div className="history-total">{cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${formatNumber(cotizacion.total || 0)}</div>
                   <div className="history-actions" style={{ flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
@@ -1252,6 +1277,7 @@ export default function CotizacionPage() {
                       </select>
                     </div>
                     <div className="text-sm text-gray">{cotizacion.empresa} - {formatDisplayDate(cotizacion.fecha)}</div>
+                    {cotizacion.atencion && <div className="text-sm" style={{ color: '#64748b', fontStyle: 'italic', marginTop: '2px' }}>Atención: {cotizacion.atencion}</div>}
                   </div>
                   <div className="history-total">{cotizacion.moneda === 'DOLARES' ? 'USD' : 'MXN'} ${formatNumber(cotizacion.total || 0)}</div>
                   <div className="history-actions" style={{ flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
