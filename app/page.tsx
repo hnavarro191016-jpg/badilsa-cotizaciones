@@ -2178,16 +2178,24 @@ export default function CotizacionPage() {
             </div>
           </div>
 
+          {/* DATALISTS PARA REMISIONES */}
+          <datalist id="empresas-list-remision">
+            {uniqueEmpresas.map((emp, i) => <option key={i} value={emp} />)}
+          </datalist>
+          <datalist id="atenciones-list-remision">
+            {uniqueAtencion.map((atn, i) => <option key={i} value={atn} />)}
+          </datalist>
+
           {/* CLIENTE Y CONTACTO */}
           <div style={{ border: '2px solid #000', padding: '0.5rem 1rem', marginBottom: '1.5rem', display: 'flex', gap: '2rem' }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>Cliente:</span>
-              <input className="inline-input no-print w-full" value={remisionCliente} onChange={e => setRemisionCliente(e.target.value)} placeholder="Nombre del cliente" style={{ fontSize: '1rem', fontWeight: 'bold' }} />
+              <input className="inline-input no-print w-full" value={remisionCliente} onChange={e => setRemisionCliente(e.target.value)} placeholder="Nombre del cliente" style={{ fontSize: '1rem', fontWeight: 'bold' }} list="empresas-list-remision" />
               <span className="print-only" style={{ flex: 1, borderBottom: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 'bold' }}>{remisionCliente}</span>
             </div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
               <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>Contacto:</span>
-              <input className="inline-input no-print w-full" value={remisionDireccion} onChange={e => setRemisionDireccion(e.target.value)} placeholder="Nombre del contacto" style={{ fontSize: '1rem' }} />
+              <input className="inline-input no-print w-full" value={remisionDireccion} onChange={e => setRemisionDireccion(e.target.value)} placeholder="Nombre del contacto" style={{ fontSize: '1rem' }} list="atenciones-list-remision" />
               <span className="print-only" style={{ flex: 1, borderBottom: '1px solid #cbd5e1', fontSize: '1rem' }}>{remisionDireccion}</span>
             </div>
           </div>
@@ -2251,8 +2259,8 @@ export default function CotizacionPage() {
           </div>
 
           {/* FOOTER */}
-          <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: '300px', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '0.5rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+          <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '300px', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
               NOMBRE Y FIRMA DE RECIBIDO
             </div>
           </div>
