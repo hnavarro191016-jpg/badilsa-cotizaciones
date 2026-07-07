@@ -948,9 +948,12 @@ export default function CotizacionPage() {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/auth/login', { method: 'DELETE' });
-    router.push('/login');
-    router.refresh();
+    try {
+      await fetch('/api/auth/login', { method: 'DELETE' });
+    } catch (e) {
+      console.error(e);
+    }
+    window.location.href = '/login';
   };
 
   const handleSendWhatsApp = () => {
