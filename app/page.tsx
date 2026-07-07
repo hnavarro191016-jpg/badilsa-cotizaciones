@@ -2134,23 +2134,11 @@ export default function CotizacionPage() {
               value={remisionCotizacionId} 
               onChange={e => {
                 const cotId = e.target.value;
-                setRemisionCotizacionId(cotId);
-                if (cotId) {
-                  const selectedCot = historial.find(c => c.id === cotId);
-                  if (selectedCot && selectedCot.items && selectedCot.items.length > 0) {
-                    if (window.confirm('¿Deseas importar las partidas de esta cotización a la remisión?')) {
-                      setRemisionItems(selectedCot.items.map(item => ({
-                        id: Date.now().toString() + Math.random().toString(),
-                        cantidad: item.cantidad,
-                        descripcion: item.descripcion,
-                        isEditing: false
-                      })));
-                      if (selectedCot.empresa) {
-                        setRemisionCliente(selectedCot.empresa);
-                      }
-                    }
-                  }
+                if (!cotId) {
+                  setRemisionCotizacionId('');
+                  return;
                 }
+                setPreviewCotizacionId(cotId);
               }}
               style={{ width: '300px' }}
             >
@@ -2159,16 +2147,6 @@ export default function CotizacionPage() {
                 <option key={cot.id} value={cot.id || ''}>{cot.folio} - {cot.empresa}</option>
               ))}
             </select>
-            {remisionCotizacionId && (
-              <button 
-                className="btn btn-outline" 
-                style={{ padding: '0.4rem 0.5rem', color: '#0284c7', borderColor: '#0284c7' }} 
-                onClick={() => setPreviewCotizacionId(remisionCotizacionId)}
-                title="Vista previa de cotización"
-              >
-                <Eye size={18} />
-              </button>
-            )}
           </div>
 
           {/* DOCUMENT HEADER */}
@@ -2439,6 +2417,32 @@ export default function CotizacionPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <button className="btn btn-outline" onClick={() => setPreviewCotizacionId(null)}>
+                Cancelar
+              </button>
+              <button className="btn btn-primary" onClick={() => {
+                const selectedCot = historial.find(c => c.id === previewCotizacionId);
+                if (selectedCot) {
+                  setRemisionCotizacionId(previewCotizacionId);
+                  if (selectedCot.items && selectedCot.items.length > 0) {
+                    setRemisionItems(selectedCot.items.map(item => ({
+                      id: Date.now().toString() + Math.random().toString(),
+                      cantidad: item.cantidad,
+                      descripcion: item.descripcion,
+                      isEditing: false
+                    })));
+                  }
+                  if (selectedCot.empresa) {
+                    setRemisionCliente(selectedCot.empresa);
+                  }
+                  setPreviewCotizacionId(null);
+                }
+              }}>
+                <Check size={18} style={{ marginRight: '0.5rem' }} /> Importar Partidas a la Remisión
+              </button>
             </div>
           </div>
         </div>
