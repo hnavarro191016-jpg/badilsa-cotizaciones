@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target, X, Menu } from 'lucide-react';
+import { Check, Edit, History, Home, LogOut, Plus, Printer, Save, Trash2, UserPlus, Mail, MessageCircle, BarChart3, TrendingUp, DollarSign, Upload, FileText, Filter, PieChart, Users, Target, X, Menu, Eye } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
@@ -248,6 +248,8 @@ export default function CotizacionPage() {
   const [error, setError] = useState('');
 
   const userRole = currentUser?.role;
+
+  const [previewRemisionItem, setPreviewRemisionItem] = useState<NotaRemisionData | null>(null);
 
   const subTotal = useMemo(
     () => items.reduce((acc, item) => {
@@ -2103,6 +2105,9 @@ export default function CotizacionPage() {
                     </div>
                   </div>
                   <div className="actions">
+                    <button className="btn btn-outline" style={{ padding: '0.3rem 0.5rem', marginRight: '0.5rem', color: '#0284c7', borderColor: '#0284c7' }} onClick={() => setPreviewRemisionItem(rem)}>
+                      <Eye size={16} /> Vista Previa
+                    </button>
                     <button className="btn btn-outline" onClick={() => loadRemision(rem)}>
                       <Edit size={16} /> Abrir
                     </button>
@@ -2259,8 +2264,8 @@ export default function CotizacionPage() {
           </div>
 
           {/* FOOTER */}
-          <div style={{ marginTop: '4rem', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: '300px', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '1rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+          <div style={{ marginTop: '8rem', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '300px', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '1.25rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
               NOMBRE Y FIRMA DE RECIBIDO
             </div>
           </div>
@@ -2292,6 +2297,92 @@ export default function CotizacionPage() {
                 {isChangingPassword ? 'Cambiando...' : 'Cambiar Contraseña'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {previewRemisionItem && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, overflowY: 'auto', padding: '2rem' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '0.5rem', width: '100%', maxWidth: '800px', position: 'relative' }}>
+            <button 
+              className="btn btn-outline danger-outline" 
+              style={{ position: 'absolute', top: '1rem', right: '1rem' }}
+              onClick={() => setPreviewRemisionItem(null)}
+            >
+              <X size={20} />
+            </button>
+            <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>Vista Previa de Remisión</h2>
+            
+            <div className="document-page" style={{ padding: '20px' }}>
+              {/* DOCUMENT HEADER */}
+              <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+                <img src="/logo.png" alt="Badilsa Logo" style={{ width: '220px', marginTop: '-30px' }} />
+                <div style={{ fontSize: '0.75rem', color: '#475569', lineHeight: '1.2', marginTop: '-45px', position: 'relative', zIndex: 10 }}>
+                  <p style={{ margin: 0 }}>Carret. Agua Fria Km. 1.5 Col. Cerritos de Agua Fria</p>
+                  <p style={{ margin: 0 }}>Tel. (81) 8314-2767 C.P. 66620. Apodaca, N.L.</p>
+                  <p style={{ margin: 0 }}>ventas@badilsa.com</p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+                <div style={{ border: '2px solid #2563eb', padding: '0.25rem 0.5rem', color: '#1e3a8a', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '0.5rem' }}>REMISION</span>
+                  <span>{previewRemisionItem.folio}</span>
+                </div>
+                <div style={{ border: '2px solid #2563eb', padding: '0.25rem 0.5rem', color: '#1e3a8a', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ marginRight: '0.5rem' }}>FECHA.</span>
+                  <span>{previewRemisionItem.fecha}</span>
+                </div>
+              </div>
+
+              {/* CLIENTE Y CONTACTO */}
+              <div style={{ border: '2px solid #000', padding: '0.5rem 1rem', marginBottom: '1.5rem', display: 'flex', gap: '2rem' }}>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>Cliente:</span>
+                  <span style={{ flex: 1, borderBottom: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 'bold' }}>{previewRemisionItem.cliente}</span>
+                </div>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 'bold', marginRight: '0.5rem' }}>Contacto:</span>
+                  <span style={{ flex: 1, borderBottom: '1px solid #cbd5e1', fontSize: '1rem' }}>{previewRemisionItem.direccion || ''}</span>
+                </div>
+              </div>
+
+              {/* TABLE */}
+              <div className="table-container" style={{ border: '2px solid #3b82f6', borderRadius: '4px' }}>
+                <table className="doc-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ width: '15%', background: '#3b82f6', color: 'white', padding: '0.5rem', textAlign: 'center', borderRight: '1px solid white' }}>CANTIDAD</th>
+                      <th style={{ width: '85%', background: '#3b82f6', color: 'white', padding: '0.5rem', textAlign: 'center' }}>DESCRIPCION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {previewRemisionItem.items.map((item) => (
+                      <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ textAlign: 'center', verticalAlign: 'top', padding: '0.5rem', borderRight: '1px solid #e2e8f0' }}>
+                          <span>{item.cantidad || ''}</span>
+                        </td>
+                        <td style={{ verticalAlign: 'top', padding: '0.5rem' }}>
+                          <div style={{ whiteSpace: 'pre-wrap' }}>{item.descripcion}</div>
+                        </td>
+                      </tr>
+                    ))}
+                    {Array.from({ length: Math.max(0, 20 - previewRemisionItem.items.length) }).map((_, i) => (
+                      <tr key={`empty-${i}`} style={{ height: '20px', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ borderRight: '1px solid #e2e8f0', padding: '0.1rem 0.5rem' }}>&nbsp;</td>
+                        <td style={{ padding: '0.1rem 0.5rem' }}>&nbsp;</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* FOOTER */}
+              <div style={{ marginTop: '8rem', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: '300px', borderTop: '1px solid #000', textAlign: 'center', paddingTop: '1.25rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  NOMBRE Y FIRMA DE RECIBIDO
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
