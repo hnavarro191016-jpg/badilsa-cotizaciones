@@ -250,6 +250,7 @@ export default function CotizacionPage() {
   const userRole = currentUser?.role;
 
   const [previewRemisionItem, setPreviewRemisionItem] = useState<NotaRemisionData | null>(null);
+  const [previewCotizacionId, setPreviewCotizacionId] = useState<string | null>(null);
 
   const subTotal = useMemo(
     () => items.reduce((acc, item) => {
@@ -2158,6 +2159,16 @@ export default function CotizacionPage() {
                 <option key={cot.id} value={cot.id || ''}>{cot.folio} - {cot.empresa}</option>
               ))}
             </select>
+            {remisionCotizacionId && (
+              <button 
+                className="btn btn-outline" 
+                style={{ padding: '0.4rem 0.5rem', color: '#0284c7', borderColor: '#0284c7' }} 
+                onClick={() => setPreviewCotizacionId(remisionCotizacionId)}
+                title="Vista previa de cotización"
+              >
+                <Eye size={18} />
+              </button>
+            )}
           </div>
 
           {/* DOCUMENT HEADER */}
@@ -2301,8 +2312,8 @@ export default function CotizacionPage() {
         </div>
       )}
       {previewRemisionItem && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, overflowY: 'auto', padding: '2rem' }}>
-          <div style={{ background: 'white', padding: '2rem', borderRadius: '0.5rem', width: '100%', maxWidth: '800px', position: 'relative' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 9999, overflowY: 'auto', padding: '2rem' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '0.5rem', width: '100%', maxWidth: '800px', position: 'relative', margin: 'auto' }}>
             <button 
               className="btn btn-outline danger-outline" 
               style={{ position: 'absolute', top: '1rem', right: '1rem' }}
@@ -2382,6 +2393,52 @@ export default function CotizacionPage() {
                   NOMBRE Y FIRMA DE RECIBIDO
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {previewCotizacionId && historial.find(c => c.id === previewCotizacionId) && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 9999, overflowY: 'auto', padding: '2rem' }}>
+          <div style={{ background: 'white', padding: '2rem', borderRadius: '0.5rem', width: '100%', maxWidth: '800px', position: 'relative', margin: 'auto' }}>
+            <button 
+              className="btn btn-outline danger-outline" 
+              style={{ position: 'absolute', top: '1rem', right: '1rem' }}
+              onClick={() => setPreviewCotizacionId(null)}
+            >
+              <X size={20} />
+            </button>
+            <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>
+              Vista Previa de Cotización: {historial.find(c => c.id === previewCotizacionId)?.folio}
+            </h2>
+            
+            <div style={{ marginBottom: '1rem' }}>
+              <strong>Cliente:</strong> {historial.find(c => c.id === previewCotizacionId)?.empresa} <br/>
+              <strong>Atención:</strong> {historial.find(c => c.id === previewCotizacionId)?.atencion} <br/>
+              <strong>Fecha:</strong> {historial.find(c => c.id === previewCotizacionId)?.fecha}
+            </div>
+            
+            <div className="table-container" style={{ border: '2px solid #3b82f6', borderRadius: '4px' }}>
+              <table className="doc-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ background: '#3b82f6', color: 'white', padding: '0.5rem' }}>Cantidad</th>
+                    <th style={{ background: '#3b82f6', color: 'white', padding: '0.5rem' }}>Descripción</th>
+                    <th style={{ background: '#3b82f6', color: 'white', padding: '0.5rem', textAlign: 'right' }}>Unitario</th>
+                    <th style={{ background: '#3b82f6', color: 'white', padding: '0.5rem', textAlign: 'right' }}>Importe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {historial.find(c => c.id === previewCotizacionId)?.items.map(item => (
+                    <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ textAlign: 'center', padding: '0.5rem' }}>{item.cantidad}</td>
+                      <td style={{ padding: '0.5rem', whiteSpace: 'pre-wrap' }}>{item.descripcion}</td>
+                      <td style={{ textAlign: 'right', padding: '0.5rem' }}>${Number(item.precioUnitario).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                      <td style={{ textAlign: 'right', padding: '0.5rem' }}>${(Number(item.cantidad) * Number(item.precioUnitario)).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
