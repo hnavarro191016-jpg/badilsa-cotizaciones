@@ -1137,8 +1137,8 @@ export default function CotizacionPage() {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', width: '100%' }}>
               <div>
-                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Fecha:</label>
-                <select className="input" value={historyFilterDate} onChange={(e) => setHistoryFilterDate(e.target.value)} style={{ padding: '0.5rem' }}>
+                <label style={{ marginBottom: '8px', display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Fecha:</label>
+                <select className="input" value={historyFilterDate} onChange={(e) => setHistoryFilterDate(e.target.value)} style={{ padding: '0.5rem', width: '100%' }}>
                   <option value="todas">Todas las Fechas</option>
                   <option value="hoy">El Día de Hoy</option>
                   <option value="semana">Últimos 7 Días</option>
@@ -1147,16 +1147,16 @@ export default function CotizacionPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Estatus:</label>
-                <select className="input" value={historyFilterStatus} onChange={(e) => setHistoryFilterStatus(e.target.value)} style={{ padding: '0.5rem' }}>
+                <label style={{ marginBottom: '8px', display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Estatus:</label>
+                <select className="input" value={historyFilterStatus} onChange={(e) => setHistoryFilterStatus(e.target.value)} style={{ padding: '0.5rem', width: '100%' }}>
                   <option value="todos">Todos los Estatus</option>
                   <option value="PENDIENTE">Pendientes de OC</option>
                   <option value="RECIBIDA">Completadas (OC Recibida)</option>
                 </select>
               </div>
               <div>
-                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Empresa:</label>
-                <select className="input" value={historyFilterEmpresa} onChange={(e) => setHistoryFilterEmpresa(e.target.value)} style={{ padding: '0.5rem' }}>
+                <label style={{ marginBottom: '8px', display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Empresa:</label>
+                <select className="input" value={historyFilterEmpresa} onChange={(e) => setHistoryFilterEmpresa(e.target.value)} style={{ padding: '0.5rem', width: '100%' }}>
                   <option value="todas">Todas las Empresas</option>
                   {uniqueEmpresas.map(emp => (
                     <option key={emp} value={emp}>{emp}</option>
@@ -1164,8 +1164,8 @@ export default function CotizacionPage() {
                 </select>
               </div>
               <div>
-                <label className="text-sm font-bold text-gray block" style={{ marginBottom: '4px' }}>Atención:</label>
-                <select className="input" value={historyFilterAtencion} onChange={(e) => setHistoryFilterAtencion(e.target.value)} style={{ padding: '0.5rem' }}>
+                <label style={{ marginBottom: '8px', display: 'block', fontSize: '0.875rem', fontWeight: 'bold', color: '#64748b' }}>Atención:</label>
+                <select className="input" value={historyFilterAtencion} onChange={(e) => setHistoryFilterAtencion(e.target.value)} style={{ padding: '0.5rem', width: '100%' }}>
                   <option value="todas">Cualquier Atención</option>
                   {uniqueAtencion.map(atn => (
                     <option key={atn} value={atn}>{atn}</option>
@@ -2304,7 +2304,7 @@ export default function CotizacionPage() {
             </button>
             <h2 style={{ marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem' }}>Vista Previa de Remisión</h2>
             
-            <div className="document-page" style={{ padding: '20px' }}>
+            <div style={{ padding: '20px', width: '100%' }}>
               {/* DOCUMENT HEADER */}
               <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
                 <img src="/logo.png" alt="Badilsa Logo" style={{ width: '220px', marginTop: '-30px' }} />
