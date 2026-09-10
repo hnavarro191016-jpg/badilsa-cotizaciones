@@ -188,6 +188,7 @@ export default function CotizacionPage() {
 
   const [currentCotizacionId, setCurrentCotizacionId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importExcelInputRef = useRef<HTMLInputElement>(null);
   const [uploadingOCFor, setUploadingOCFor] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -363,6 +364,83 @@ export default function CotizacionPage() {
   const showError = (text: string) => {
     setMessage('');
     setError(text);
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const { read, utils } = await import('xlsx');
+      const data = await file.arrayBuffer();
+      const wb = read(data);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = utils.sheet_to_json(ws, { header: 1 }) as any[][];
+
+      let headerRowIdx = -1;
+      let cantIdx = -1;
+      let unidadIdx = -1;
+      let descIdx = -1;
+      let precioIdx = -1;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || !Array.isArray(row)) continue;
+        const colString = row.join(' ').toLowerCase();
+        if (colString.includes('cant') && colString.includes('descripcion')) {
+          headerRowIdx = i;
+          cantIdx = row.findIndex((c: any) => typeof c === 'string' && c.toLowerCase().includes('cant'));
+          unidadIdx = row.findIndex((c: any) => typeof c === 'string' && c.toLowerCase().includes('unidad'));
+          descIdx = row.findIndex((c: any) => typeof c === 'string' && c.toLowerCase().includes('descripc'));
+          precioIdx = row.findIndex((c: any) => typeof c === 'string' && (c.toLowerCase().includes('precio') || c.toLowerCase().includes('p.u.')));
+          break;
+        }
+      }
+
+      if (headerRowIdx === -1 || descIdx === -1) {
+        alert("No se pudo detectar el formato de columnas (Cant, Unidad, Descripcion, Precio Unit).");
+        return;
+      }
+
+      const newItems: Item[] = [];
+
+      for (let i = headerRowIdx + 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.length === 0) continue;
+        
+        const cantVal = row[cantIdx];
+        const unidadVal = row[unidadIdx];
+        const descVal = row[descIdx];
+        const precioVal = row[precioIdx];
+
+        const parsedCant = cantVal && !isNaN(Number(cantVal)) ? Number(cantVal) : 0;
+        const parsedPrecio = precioVal && !isNaN(Number(precioVal)) ? Number(precioVal) : 0;
+
+        // Solo agregamos la fila si tiene descripción Y una cantidad válida mayor a 0
+        if (descVal && parsedCant > 0) { 
+          newItems.push({
+            id: Date.now().toString() + Math.random().toString(36).substring(7),
+            cantidad: parsedCant,
+            unidad: unidadVal ? String(unidadVal).trim() : '',
+            descripcion: String(descVal).trim(),
+            precioUnitario: parsedPrecio,
+            valorDolar: 0,
+            isEditing: false
+          });
+        }
+      }
+
+      if (newItems.length > 0) {
+        setItems(newItems);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al importar el archivo Excel");
+    } finally {
+      if (importExcelInputRef.current) {
+        importExcelInputRef.current.value = '';
+      }
+    }
   };
 
   const fetchCurrentUser = async () => {
@@ -1076,6 +1154,20 @@ export default function CotizacionPage() {
                 </button>
                 <button className="btn btn-outline" onClick={handleSendEmail} style={{ color: '#2563eb', borderColor: '#2563eb' }} title="Compartir texto por Correo">
                   <Mail size={18} /> Correo
+                </button>
+              </>
+            )}
+            {activeTab === 'cotizacion' && (
+              <>
+                <input 
+                  type="file" 
+                  accept=".xls,.xlsx" 
+                  ref={importExcelInputRef} 
+                  style={{ display: 'none' }} 
+                  onChange={handleImportExcel} 
+                />
+                <button className="btn btn-outline" onClick={() => importExcelInputRef.current?.click()} style={{ color: '#0ea5e9', borderColor: '#0ea5e9' }} title="Importar desde Excel">
+                  <Upload size={18} /> Importar Excel
                 </button>
               </>
             )}

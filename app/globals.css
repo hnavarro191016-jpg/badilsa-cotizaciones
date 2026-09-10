@@ -506,28 +506,105 @@ body {
   margin-right: 1rem;
 }
 
+/* Mobile Top Navbar (Hidden on Desktop) */
+.mobile-top-navbar {
+  display: none;
+}
+
 @media screen and (max-width: 768px) {
-  .app-sidebar {
-    position: fixed;
-    z-index: 100;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
-    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+  .app-container {
+    flex-direction: column;
   }
-  .app-sidebar.open {
-    transform: translateX(0);
+  
+  .app-sidebar {
+    display: none !important; /* Ocultar sidebar en móviles */
   }
   .sidebar-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 99;
+    display: none !important;
   }
   .mobile-menu-btn {
+    display: none !important;
+  }
+  
+  /* Mostrar y estilizar la Top Navbar en móviles */
+  .mobile-top-navbar {
+    width: 100%;
+    background: white;
     display: flex;
+    justify-content: center;
     align-items: center;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+  .nav-menu {
+    display: flex;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+  .nav-indicator-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+  .nav-indicator {
+    width: 40px;
+    height: 40px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+  }
+  .nav-link {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    transition: color 0.3s;
+    padding: 0;
+    margin: 0;
+  }
+  .nav-link.active {
+    color: white !important;
+  }
+  .nav-icon-frame {
+    position: relative;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transform: scale(1);
+    transition: transform 0.2s ease;
+  }
+  .nav-icon-frame svg {
+    width: 20px;
+    height: 20px;
+  }
+  .nav-link.active .nav-icon-frame {
+    transform: scale(1.15);
+  }
+  .mobile-toolbar-logo {
+    display: block !important;
+    height: 30px;
+    margin-right: 15px;
   }
 }
